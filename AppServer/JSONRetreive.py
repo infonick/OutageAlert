@@ -4,15 +4,16 @@
 # 
 # ---------------------------------------------------------------------------------
 
-import requests, pytz
+import requests, pytz, OATime
 from datetime import datetime as dt
+
 
 url = 'https://www.bchydro.com/power-outages/app/outages-map-data.json'
 
 
-currentTime = dt.now(pytz.utc)
+#currentTime = dt.now(pytz.utc)
 r = requests.get(url, allow_redirects=False)
-
+currentTime = OATime.GetTimeFromURLHeader(r)
 #convert JSON file to a list of Python dictionaries:
 outages = r.json()
 
@@ -40,7 +41,7 @@ outages = r.json()
 
 
 
-
+"""
 print("Time: ", currentTime)
 
 for outage in outages:
@@ -48,6 +49,13 @@ for outage in outages:
         print('')
         for key in outage.keys():
             print('\t' + key + ":", outage[key]) 
+    
+    elif outage['dateOn'] ==  None:
+        print('')
+        for key in outage.keys():
+            print('\t' + key + ":", outage[key]) 
+"""
+
 
 #print (outages.keys())
 
@@ -58,11 +66,17 @@ for outage in outages:
 #myTime = dt.strptime(ctString, '%Y-%m-%d %H:%M:%S.%f %z %Z')
 #print("Time2:", myTime)
 
-#PST = pytz.FixedOffset(-8*60) #Convert to PST -8h
-#myTime = currentTime.astimezone(PST)
-#print(myTime)
+
 
 #from pprint import pprint
 #pprint(vars(r))
 
 #print(r.json())
+print(r.headers.get('Date'))
+print(currentTime)
+print(r.headers.get('content-type')) #'application/json'
+
+
+
+
+
