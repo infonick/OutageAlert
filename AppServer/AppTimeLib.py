@@ -1,6 +1,6 @@
 # OutageAlert
 # Application Server
-# OATime
+# AppTimeLib
 #
 # This file contains a library of custom time functions for OutageAlert
 # 
