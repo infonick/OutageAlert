@@ -4,7 +4,7 @@
 # 
 # ---------------------------------------------------------------------------------------
 
-import requests, OATime, sys, pytz
+import requests, OATime, sys, pytz, AppModel, json
 from datetime import datetime as dt
 
 
@@ -70,6 +70,100 @@ except:
     for line in sys.exc_info():
         print(line)
     # Program a routine that notifies the admin, etc.                                                                       <----
+
+
+
+# Sort outages into new and existing categories -----------------------------------------
+
+# Make a list of outage id's from the JSON file
+outageList = []
+for outage in outages:
+    outageList.append(outage['id'])
+
+# Retrieve existing outages from the database
+(dbOutages, err) = AppModel.GetOutageList(outageList)
+
+if err == None:
+    # Make a list of outage id's that exist in the database
+    outageListRetrieved = []
+    for outage in dbOutages:
+        outageListRetrieved.append(outage['id'])
+
+    # Sort JSON outages into two lists - new and existing outages
+    newOutages = []
+    oldOutages = []
+
+    for outage in outages:
+        if outage['id'] in outageListRetrieved:
+            oldOutages.append(outage.copy())
+        else:
+            newOutages.append(outage.copy())
+
+else:
+    #There was a problem retrieving the existing outages from the database. Handle this error                               <----
+    print("ERROR RETRIEVING EXISTING OUTAGES FROM DATABASE!")
+
+
+# Save new outage data to database ------------------------------------------------------
+
+err = AppModel.SaveNewOutages(newOutages)
+
+if err != None:
+    #There was a problem saving the new outages to the database. Handle this error                                          <----
+    print("NEW OUTAGE DATA NOT SAVED TO DATABASE!")
+    print(err)
+
+
+# Alert users of new outages ------------------------------------------------------------                                   <----
+
+
+
+# Compare old outages to find changes, update DB, and alert users -----------------------                                   <----
+
+updateOutages = []
+
+for oldOutage in oldOutages:
+
+    target = oldOutage['id'] 
+    left = 0
+    right = len(dbOutages)-1
+
+    while left <= right:
+        attempt = (left + right) // 2
+        if target == dbOutages[attempt]['id']:
+            dbOutDict = json.loads(pdbOutages[attempt]['json'])
+            for key in oldOutage:
+                if oldOutage[key] != dbOutDict[key]:
+                    updateOutages.append(dbOutDict.copy())
+            break
+            
+        elif target <= dbOutages[attempt]['id']:
+            right = attempt − 1
+
+        else:
+            left = attempt + 1
+            
+        #return unsuccessful
+
+
+    
+    in outageListRetrieved:
+        oldOutages.append(outage.copy())
+    else:
+        newOutages.append(outage.copy())
+
+
+
+# Update database with new outage information
+err = AppModel.UpdateOutage(updateOutages)
+
+if err != None:
+    #There was a problem saving the updated outages to the database. Handle this error                                      <----
+    print("UPDATED OUTAGE DATA NOT SAVED TO DATABASE!")
+    print(err)
+
+
+
 
 
 
