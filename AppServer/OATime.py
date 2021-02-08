@@ -45,7 +45,13 @@ def PythonChangeTimeZone (UTCTime, offset):
     """Changes the time zone of a Python DateTime object to a particular offset
     """
     # adds or subtracts number of minutes. For example, PST = pytz.FixedOffset(-8*60)
-    newZone = pytz.FixedOffset(offset*60)
+    if type(offset) == type(-8) or type(offset) == type(-8.5):
+        newZone = pytz.FixedOffset(offset*60)
+    
+    # uses a string timezone representation such as 'America/Vancouver'
+    else: #if type(offset) == type('string'):
+        newZone = pytz.timezone(offset)
+
     newDateTime = UTCTime.astimezone(newZone)
     return newDateTime
 

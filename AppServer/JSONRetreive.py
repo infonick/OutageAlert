@@ -183,7 +183,7 @@ for outageNum in range(len(updateOutages)):
     
 #Alert users to outage updates
 
-
+updateAlerts = []
 
 for outageNum in range(len(updateOutages)):
     (outageID, dbOutageInfo,updatedOutageInfo) = updateOutages[outageNum]
@@ -194,77 +194,92 @@ for outageNum in range(len(updateOutages)):
         oldValue = dbOutageInfo[key]
         newValue = updatedOutageInfo[key]
 
-        if key == 'id':
+        if key == 'cause':
+            if oldValue == None:
+                outageMessages.append("Cause of power outage: " + newValue)
+            else:
+                outageMessages.append("Cause of power outage updated from \'" + oldValue + "\' to \'" + newValue + "\'.")
+            break
             break
 
-        elif key == 'gisId':
-            break
-
-        elif key == 'regionId':
-            break
-
-        elif key == 'municipality':
-            break
-
-        elif key == 'area':
-            break
-
-        elif key == 'cause':
-            break
-
-        elif key == 'numCustomersOut':
-            break
 
         elif key == 'crewStatusDescription':
+            if oldValue == None:
+                outageMessages.append("Power restoration crew status: " + newValue)
+            else:
+                outageMessages.append("Power restoration crew status updated from \'" + oldValue + "\' to \'" + newValue + "\'.")
             break
+
 
         elif key == 'crewEta':
+            dateTimeCrewETA = OATime.DateTimeFromJSToPython(newValue)
+            dateTimeCrewETA = OATime.PythonChangeTimeZone(dateTimeCrewETA, 'America/Vancouver')
+            if oldValue == None:
+                outageMessages.append("Power restoration crew ETA: " + datetime.datetime.strftime(dateTimeOff, '%Y-%b-%d %I:%M:%S %p %Z'))
+            else:
+                outageMessages.append("Power restoration crew ETA updated to: " + datetime.datetime.strftime(dateTimeOff, '%Y-%b-%d %I:%M:%S %p %Z'))
             break
 
+
         elif key == 'dateOff':
-            outageMessages.append("Timestamp of ")
+            dateTimeOff = OATime.DateTimeFromJSToPython(newValue)
+            dateTimeOff = OATime.PythonChangeTimeZone(dateTimeOff, 'America/Vancouver')
+            if oldValue == None:
+                outageMessages.append("Power outage began on " + datetime.datetime.strftime(dateTimeOff, '%Y-%b-%d %I:%M:%S %p %Z'))
+            else:
+                outageMessages.append("Power outage start time was updated to " + datetime.datetime.strftime(dateTimeOff, '%Y-%b-%d %I:%M:%S %p %Z'))
             break
+
 
         elif key == 'dateOn':
             dateTimeOn = OATime.DateTimeFromJSToPython(newValue)
-            dateTimeOn = OATime.PythonChangeTimeZone(dateTimeOn, -8)
-            
+            dateTimeOn = OATime.PythonChangeTimeZone(dateTimeOn, 'America/Vancouver')
             if oldValue == None:
-
-                outageMessages.append("Power was restored on " + datetime.datetime.strftime(dateTimeOn, '%Y-%b-%d %H:%M'))
+                outageMessages.append("Power restored on " + datetime.datetime.strftime(dateTimeOn, '%Y-%b-%d %I:%M:%S %p %Z'))
             else:
-                #outageMessages.append("Power was restored on: " + )
-                #what do we do if power was restored a second time?                                                         <----
+                outageMessages.append("Power restoration time was updated to " + datetime.datetime.strftime(dateTimeOn, '%Y-%b-%d %I:%M:%S %p %Z'))
             break
 
-        elif key == 'lastUpdated':
-            break
-
-        elif key == 'regionName':
-            break
-
-        elif key == 'crewEtr':
-            break
-
-        elif key == 'showEta':
-            break
-
-        elif key == 'showEtr':
-            break
-
-        elif key == 'latitude':
-            break
-
-        elif key == 'longitude':
-            break
 
         elif key == 'polygon':
-            #need to check for newly affected customers, or newly restored customers                                        <----
+            #need to check for newly affected customers, or newly restored customers if the polygon changes                 <----
             break
+        elif key == 'lastUpdated':
+            #What do we do with this part? anything?                                                                        <----
+            break
+        elif key == 'numCustomersOut':
+            break
+        elif key == 'id':
+            break
+        elif key == 'gisId':
+            break
+        elif key == 'regionId':
+            break
+        elif key == 'municipality':
+            break
+        elif key == 'area':
+            break
+        elif key == 'regionName':
+            break
+        elif key == 'crewEtr':
+            break
+        elif key == 'showEta':
+            break
+        elif key == 'showEtr':
+            break
+        elif key == 'latitude':
+            break
+        elif key == 'longitude':
+            break
+    
+    updateAlerts.append((outageID, outageMessages)) #create a tuple consisting of the outage ID #, and all the related update messages
+
+
+#send the updateAlerts tuple-list to a function that sends the messages to our users                                        <----
 
 
 
-#dictionary keys w/ examples
+# Outage dictionary keys w/ examples
 #         id: 1588375
 #         gisId: 1578468
 #         regionId: 1602964060
