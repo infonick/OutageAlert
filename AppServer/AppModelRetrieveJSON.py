@@ -1,12 +1,14 @@
 # Outage Alert
 # Application Server
-# Retrieve JSON file from BC Hydro
+# AppModelRetrieveJSON
+#
+# This script retrieves a JSON file from BC Hydro. The JSON file contains all current power outage data.
 # 
 # ---------------------------------------------------------------------------------------
 
 # Import custom modules
-import OATime       # Custom date and time related functions for the OutageAlert application
-import AppModel     # Database commands
+import AppTimeLib   # Custom date and time related functions for the OutageAlert application
+import AppModelDB   # Database commands
 
 # Import standard modules
 import requests     # Allows Python to send HTTP requests, used to retrieve BC Hydro JSON file
