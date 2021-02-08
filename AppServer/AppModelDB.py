@@ -30,7 +30,7 @@ def OpenDBConnection():
 
     mydb = mysql.connector.connect(
     host="localhost",
-    user="yourusername",#                                                                                                   <---- update db login info & name
+    user="theusername",#                                                                                                   <---- update db login info & name
     password="yourpassword",#                                                                                               <---- update db login info & name
     database="mydatabase"#                                                                                                  <---- update db login info & name
     )
