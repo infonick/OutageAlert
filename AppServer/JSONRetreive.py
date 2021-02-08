@@ -118,44 +118,48 @@ if err != None:
 
 
 
-# Compare old outages to find changes, update DB, and alert users -----------------------                                   <----
+# Compare old outages to find changes, update DB, and alert users -----------------------                                   
 
-updateOutages = []
+updateOutages = [] #stores tuples of outages (Outage ID #, Outage Info in DB, Updated Outage Info)
+
+dbOutagesCopy = dbOutages.copy()
 
 for oldOutage in oldOutages:
 
+    #use a binary search to compare outage information from BC Hydro with outage information from the DB
     target = oldOutage['id'] 
     left = 0
-    right = len(dbOutages)-1
+    right = len(dbOutagesCopy)-1
 
     while left <= right:
         attempt = (left + right) // 2
-        if target == dbOutages[attempt]['id']:
-            dbOutDict = json.loads(pdbOutages[attempt]['json'])
-            for key in oldOutage:
-                if oldOutage[key] != dbOutDict[key]:
-                    updateOutages.append(dbOutDict.copy())
+        if target == dbOutagesCopy[attempt]['id']:
+            dbOutageInfo = dbOutagesCopy[attempt]['json']
+            updatedOutageInfo = oldOutage[attempt]['json']
+            for key in updatedOutageInfo:
+                if updatedOutageInfo[key] != dbOutageInfo[key]:
+                    updateOutages.append((target, dbOutageInfo.copy(),updatedOutageInfo.copy()))
+                    dbOutagesCopy.pop(attempt) #remove this item from the dbOutage list.
+                    break
             break
             
-        elif target <= dbOutages[attempt]['id']:
-            right = attempt − 1
+        elif target <= dbOutagesCopy[attempt]['id']:
+            right = attempt - 1
 
         else:
             left = attempt + 1
             
-        #return unsuccessful
-
-
     
-    in outageListRetrieved:
-        oldOutages.append(outage.copy())
-    else:
-        newOutages.append(outage.copy())
+    if left > right:
+        # Program a routine to deal with cases where  two outage records did not coincide                                   <----
+        print('ERROR: AN EXISTING OUTAGE WAS NOT FOUND IN THE DB RECORDS!')
 
 
 
 # Update database with new outage information
-err = AppModel.UpdateOutage(updateOutages)
+dbUpdates = [outage for (_,_,outage) in updateOutages] #python list comprehension
+
+err = AppModel.UpdateOutage(dbUpdates)
 
 if err != None:
     #There was a problem saving the updated outages to the database. Handle this error                                      <----
@@ -164,6 +168,99 @@ if err != None:
 
 
 
+# Figure out what changed so we can act on those changes
+for outageNum in range(len(updateOutages)):
+    (_,dbOutageInfo,updatedOutageInfo) = updateOutages[outageNum]
+    for key in updatedOutageInfo:
+        if updatedOutageInfo[key] == dbOutageInfo[key]:
+            updateOutages.pop(key)
+            dbOutageInfo.pop(key)
+            break
+    if len(updatedOutageInfo) == len(dbOutageInfo) == 0
+        updateOutages.pop(outageNum)
+
+
+    
+#Alert users to outage updates
+
+
+
+for outageNum in range(len(updateOutages)):
+    (outageID, dbOutageInfo,updatedOutageInfo) = updateOutages[outageNum]
+
+    outageMessages = []
+
+    for key in updatedOutageInfo:
+        oldValue = dbOutageInfo[key]
+        newValue = updatedOutageInfo[key]
+
+        if key == 'id':
+            break
+
+        elif key == 'gisId':
+            break
+
+        elif key == 'regionId':
+            break
+
+        elif key == 'municipality':
+            break
+
+        elif key == 'area':
+            break
+
+        elif key == 'cause':
+            break
+
+        elif key == 'numCustomersOut':
+            break
+
+        elif key == 'crewStatusDescription':
+            break
+
+        elif key == 'crewEta':
+            break
+
+        elif key == 'dateOff':
+            outageMessages.append("Timestamp of ")
+            break
+
+        elif key == 'dateOn':
+            dateTimeOn = OATime.DateTimeFromJSToPython(newValue)
+            dateTimeOn = OATime.PythonChangeTimeZone(dateTimeOn, -8)
+            
+            if oldValue == None:
+
+                outageMessages.append("Power was restored on " + datetime.datetime.strftime(dateTimeOn, '%Y-%b-%d %H:%M'))
+            else:
+                #outageMessages.append("Power was restored on: " + )
+                #what do we do if power was restored a second time?                                                         <----
+            break
+
+        elif key == 'lastUpdated':
+            break
+
+        elif key == 'regionName':
+            break
+
+        elif key == 'crewEtr':
+            break
+
+        elif key == 'showEta':
+            break
+
+        elif key == 'showEtr':
+            break
+
+        elif key == 'latitude':
+            break
+
+        elif key == 'longitude':
+            break
+
+        elif key == 'polygon':
+            #need to check for newly affected customers, or newly restored customers                                        <----
+            break
 
 
 

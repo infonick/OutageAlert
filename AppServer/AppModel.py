@@ -71,11 +71,17 @@ def GetOutageList(values):
     try:
         OpenDBConnection()
         
-        sql = 'SELECT * FROM ' + outageTableName + " WHERE 'id' IN " + str(tuple(values)) + ";"
+        sql = 'SELECT * FROM ' + outageTableName + " WHERE 'id' IN " + str(tuple(values)) + " ORDER BY 'id' ASC;"
 
         mycursor.execute(sql)
 
         myresult = mycursor.fetchall()
+
+        # Parse all json strings into dictionaries
+        for i in range(len(myresult))
+            myresult[i]['json'] = json.loads(myresult[i]['json'])
+
+
 
     except mysql.connector.Error as error :
         err = "Failed to retrieve outage list: {}".format(error)
