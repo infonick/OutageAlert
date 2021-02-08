@@ -1,6 +1,6 @@
 # Outage Alert
 # Application Server
-# AppModel
+# AppModelDB
 #
 # Connects to the database for CRUD functions
 # 
