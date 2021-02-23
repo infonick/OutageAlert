@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- Bootstrap - Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <!-- Popper JS - Required for Bootstrap 4 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <!-- Bootstrap - Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        // hide the create account form on initial load (done using regular javascript to prevent flickering)
+        // probably a better way to do this. still minor flickering. should look into that
+        window.addEventListener("load", function () {
+            $('#signupform').hide();
+            $('#forgotpassform').hide();
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+            // show the create account form
+            $('#create_account_btn').click(function () {
+               $('#signinform').hide();
+               $('#signupform').show();
+            });
+            // show the signin form
+            $('#signin_btn').click(function () {
+                $('#signupform').hide();
+                $('#signinform').show();
+            })
+            // show or hide the password for the signin form
+            $('#showpasslogin').click(function () {
+                if ($(this).is(':checked')){
+                    $('#loginpassword').attr('type', 'text');
+                }
+                else{
+                    $('#loginpassword').attr('type', 'password');
+                }
+            });
+            // show or hide the password for the join form
+            $('#showpassjoin').click(function () {
+                if ($(this).is(':checked')){
+                    $('#joinpassword').attr('type', 'text');
+                }
+                else{
+                    $('#joinpassword').attr('type', 'password');
+                }
+            });
+            $('#create-account').click(function () {
+                checkExistence();
+            });
+            // show the reset password form
+            $('#forgotpasslink').click(function () {
+                $('#signinform').hide();
+                $('#signupform').hide();
+                $('#forgotpassform').show();
+            });
+            $('#reset-password').click( function () {
+                $('#forgotpassform').submit();
+            });
+            // close reset form, go to sign in form
+            $('#reset_signin_btn').click(function () {
+                $('#forgotpassform').hide();
+                $('#signinform').show();
+            });
+            // close reset form, go to create account form
+            $('#reset_create_account_btn').click(function () {
+                $('#forgotpassform').hide();
+                $('#signupform').show();
+            });
+        });
+        // check whether the entered email is already in the database
+        // TODO: test this
+        function checkExistence() {
+            var controller = "controller.php";
+            var text = document.getElementById("join-email");
+            $.post(controller,
+                {
+                    page: "StartPage", command: "Join", email: text},
+            function (result) {
+                if (result === true) {
+                    // if already exists, set invalid feedback of div
+                    document.getElementById("join-email-error").innerText = "An account under this email already exists."
+                }
+                else{
+                    // otherwise, submit the sign up form
+                    $('#signupform').submit();
+                }
+            });
+            // TODO: sign in server-side validation
+        }
+    </script>
+    <title>Outage Alert</title>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+
+        <!-- TODO: add column sizes for small and large -->
+        <div class="col-lg-6">
+            <h2 style="padding: 25px">Outage Alert</h2>
+            <div style="text-align: center; padding-top: 150px">
+
+                <!-- TODO: think up some better landing page text -->
+                <p>Do you depend on constant power?</p>
+                <p>Do you need to know immediately if</p>
+                <p>the power goes out?</p>
+                <p>Our service will notify you by text or</p>
+                <p>email when a power outage is </p>
+                <p>affecting your property.</p>
+            </div>
+        </div>
+        <div class="col-lg-6" style="padding-top: 175px; padding-right: 100px">
+
+            <!--TODO - update with proper URL -->
+            <form id="signinform" action="http://ec2-35-183-181-30.ca-central-1.compute.amazonaws.com/controller.php" method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']);?>">
+                <input type="hidden" name="page" value="StartPage">
+                <h4>Sign In</h4>
+                <div class="form-group">
+                    <label for="email">Email Address:</label>
+                    <input type="email" class="form-control" id="email" name="email" value="email" required>
+                    <div class="invalid-feedback"><?php if(isset($error_msg)){echo $error_msg;} ?></div>
+                </div>
+                <div class="form-group">
+                    <label for="loginpassword">Password:</label>
+                    <input type="password" class="form-control" id="loginpassword" name="password" value="password" required>
+                    <div class="invalid-feedback">Please enter a valid password.</div>
+
+                    <!-- TODO: figure out how best to handle resetting a password. jquery, popup window, idk? -->
+                    <a href="#" id="forgotpasslink">Forgot Your Password?</a>
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="showpasslogin">
+                    <label class="form-check-label" for="showpasslogin">Show Password</label>
+                    <button type="submit" class="btn btn-primary float-right">Sign In</button>
+                    <input type="hidden" name="command" value="SignIn">
+                </div>
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="rememberme" value="rememberme">
+                    <label class="form-check-label" for="rememberme">Remember Me</label>
+                </div>
+                <hr/>
+                <div class="form-group" style="text-align: center">
+                    <p>Not Registered?</p>
+                    <button type="button" class="btn btn-primary" id="create_account_btn">Create an Account</button>
+                </div>
+            </form>
+
+            <!--TODO - update with proper URL -->
+            <form id="signupform" action="http://ec2-35-183-181-30.ca-central-1.compute.amazonaws.com/controller.php" method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']);?>">
+                <input type="hidden" name="page" value="StartPage">
+                <h4>Create Account</h4>
+                <div class="form-group">
+                    <label for="email">Email Address:</label>
+                    <input type="email" class="form-control" name="email" value="email" id="join-email" required>
+                    <div class="invalid-feedback" id="join-email-error">Please enter a valid email address.</div>
+                </div>
+                <div class="form-group">
+                    <label for="joinpassword">Password:</label>
+                    <input type="password" class="form-control" id="joinpassword" name="password" value="password" required>
+                    <div class="invalid-feedback">Please enter a valid password.</div>
+                </div>
+                <div class="form-check" style="padding-bottom: 25px">
+                    <input type="checkbox" class="form-check-input" name="showpass" id="showpassjoin">
+                    <label class="form-check-label" for="showpassjoin">Show Password</label>
+                    <button type="button" class="btn btn-primary float-right" id="create-account">Create Account</button>
+                    <input type="hidden" name="command" value="Join">
+                </div>
+                <hr/>
+                <div class="form-group" style="text-align: center">
+                    <p>Already Registered?</p>
+                    <button type="button" class="btn btn-primary" id="signin_btn">Sign In</button>
+                </div>
+            </form>
+            <!--TODO - update with proper URL -->
+            <form id="forgotpassform" action="http://ec2-35-183-181-30.ca-central-1.compute.amazonaws.com/controller.php" method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']);?>">
+                <input type="hidden" name="page" value="StartPage">
+                <h4>Reset Password</h4>
+                <div class="form-group">
+                    <label for="email">Email Address:</label>
+                    <input type="email" class="form-control" id="reset-email" name="email" value="email" required>
+                    <div class="invalid-feedback"><?php if(isset($error_msg)){echo $error_msg;} ?></div>
+                </div>
+                <div class="form-group" style="padding-bottom: 50px">
+                    <button type="button" class="btn btn-primary float-right" id="reset-password">Send Reset Request</button>
+                    <input type="hidden" name="command" value="ResetPass">
+                </div>
+                <hr/>
+                <div class="form-group" style="text-align: center">
+                    <button type="button" class="btn btn-primary" id="reset_signin_btn">Sign In</button>
+                    <button type="button" class="btn btn-primary" id="reset_create_account_btn">Create an Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>
