@@ -238,24 +238,24 @@ newOutages = [
 def GenerateOutageMessages(existingOutageInfo, updatedOutageInfo):
     outageMessages = [] # This is a list of strings for the current outage ID number. Each string is a message to the user about a change in this specific power outage.
 
-    for key in updatedOutageInfo:
+    for key in existingOutageInfo:
         oldValue = existingOutageInfo[key]
         newValue = updatedOutageInfo[key]
 
         # Generate generic power outage update messages for users
 
         if key == 'cause':
-            if oldValue == None:
+            if oldValue == None and newValue != None:
                 outageMessages.append("Cause of power outage: " + newValue)
-            else:
+            elif newValue != None:
                 outageMessages.append("Cause of power outage updated from \'" + oldValue + "\' to \'" + newValue + "\'.")
             break
 
 
         elif key == 'crewStatusDescription':
-            if oldValue == None:
+            if oldValue == None and newValue != None:
                 outageMessages.append("Power restoration crew status: " + newValue)
-            else:
+            elif newValue != None:
                 outageMessages.append("Power restoration crew status updated from \'" + oldValue + "\' to \'" + newValue + "\'.")
             break
 
@@ -263,9 +263,9 @@ def GenerateOutageMessages(existingOutageInfo, updatedOutageInfo):
         elif key == 'crewEta':
             dateTimeCrewETA = AppTimeLib.DateTimeFromJSToPython(newValue)
             dateTimeCrewETA = AppTimeLib.PythonChangeTimeZone(dateTimeCrewETA, 'America/Vancouver')
-            if oldValue == None:
+            if oldValue == None and newValue != None:
                 outageMessages.append("Power restoration crew ETA: " + datetime.datetime.strftime(dateTimeOff, '%Y-%b-%d %I:%M:%S %p %Z'))
-            else:
+            elif newValue != None:
                 outageMessages.append("Power restoration crew ETA updated to: " + datetime.datetime.strftime(dateTimeOff, '%Y-%b-%d %I:%M:%S %p %Z'))
             break
 
@@ -273,9 +273,9 @@ def GenerateOutageMessages(existingOutageInfo, updatedOutageInfo):
         elif key == 'dateOff':
             dateTimeOff = AppTimeLib.DateTimeFromJSToPython(newValue)
             dateTimeOff = AppTimeLib.PythonChangeTimeZone(dateTimeOff, 'America/Vancouver')
-            if oldValue == None:
+            if oldValue == None and newValue != None:
                 outageMessages.append("Power outage began on " + datetime.datetime.strftime(dateTimeOff, '%Y-%b-%d %I:%M:%S %p %Z'))
-            else:
+            elif newValue != None:
                 outageMessages.append("Power outage start time was updated to " + datetime.datetime.strftime(dateTimeOff, '%Y-%b-%d %I:%M:%S %p %Z'))
             break
 
@@ -283,9 +283,9 @@ def GenerateOutageMessages(existingOutageInfo, updatedOutageInfo):
         elif key == 'dateOn':
             dateTimeOn = AppTimeLib.DateTimeFromJSToPython(newValue)
             dateTimeOn = AppTimeLib.PythonChangeTimeZone(dateTimeOn, 'America/Vancouver')
-            if oldValue == None:
+            if oldValue == None and newValue != None:
                 outageMessages.append("Power restored on " + datetime.datetime.strftime(dateTimeOn, '%Y-%b-%d %I:%M:%S %p %Z'))
-            else:
+            elif newValue != None:
                 outageMessages.append("Power restoration time was updated to " + datetime.datetime.strftime(dateTimeOn, '%Y-%b-%d %I:%M:%S %p %Z'))
             break
 
@@ -345,29 +345,29 @@ def GenerateOutageMessages(existingOutageInfo, updatedOutageInfo):
 
 
 # EXISTING POWER OUTAGES ----------------------------------------------------------------
-# NEED updateOutages (list of outage dictionaries)                                                                          <----
-# Figure out what changed with each outage so we can act on those changes
-for i in range(len(updateOutages)):
-    (_, dbOutageInfo, updatedOutageInfo) = updateOutages[i] # Get the two outage dictionaries
     
-    for key in updatedOutageInfo:                           # For each key in the dictionary...
-        if updatedOutageInfo[key] == dbOutageInfo[key]:     # If the key values are the same...
-            updateOutages[i].pop(key)                       # Remove the key & value from these dictionaries
-            dbOutageInfo[i].pop(key)
-            break
-    if len(updatedOutageInfo) == len(dbOutageInfo) == 0:    # If an outage record has no keys left, remove it from the update list
-        updateOutages.pop(i)
+def SendOutageUpdateAlerts(outages):
 
+    updatedOutages = []
 
-    
-def SendOutageUpdateAlerts(updateOutages):
+    # Figure out what changed with each outage so we can act on those changes
+    for i in range(len(outages)):
+        (outageID, oldOutageInfo, updatedOutageInfo) = outages[i] # Get the two outage dictionaries
+        
+        for key in oldOutageInfo.keys():                     # For each key in the dictionary...
+            if updatedOutageInfo[key] == oldOutageInfo[key]: # If the key's values are the same...
+                updatedOutageInfo.pop(key)                   # Remove the key & value from these dictionaries
+                oldOutageInfo.pop(key)
+                continue
+        if len(oldOutageInfo) != 0:    # If an outage dictionary still has keys, add it to the list of updated outages
+            updatedOutages.append((outageID, oldOutageInfo, updatedOutageInfo))
 
-    updateAlerts = [] # This is a ist of tuples consisting of the outage ID number, and all the related update messages for that outage ID
+    updateAlerts = [] # This is a list of tuples consisting of the outage ID number, and all the related update messages for that outage ID
 
-    for i in range(len(updateOutages)):
-        (outageID, dbOutageInfo, updatedOutageInfo) = updateOutages[i]
+    for i in range(len(updatedOutages)):
+        (outageID, oldOutageInfo, updatedOutageInfo) = updatedOutages[i]
 
-        updateAlerts.append((outageID, GenerateOutageMessages(dbOutageInfo, updatedOutageInfo))) # Create a tuple consisting of the outage ID number, and all the related update messages for that outage ID
+        updateAlerts.append((outageID, GenerateOutageMessages(oldOutageInfo, updatedOutageInfo))) # Create a tuple consisting of the outage ID number, and all the related update messages for that outage ID
 
 
     #send the updateAlerts tuple-list to a function that sends the messages to our users                                        <----
