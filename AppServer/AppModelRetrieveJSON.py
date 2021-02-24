@@ -9,6 +9,7 @@
 # Import custom modules
 import AppTimeLib   # Custom date and time related functions for the OutageAlert application
 import AppModelDB   # Database commands
+import AppModelUserContact # Functions related to generating and sending messages to users.
 
 # Import standard modules
 import requests     # Allows Python to send HTTP requests, used to retrieve BC Hydro JSON file
@@ -85,6 +86,7 @@ except:
     for line in sys.exc_info():
         print(line)
     # Program a routine that notifies the admin, etc.                                                                       <----
+    # Another thought, can an injection happen if the BCHydro json is compromised?                                          <----
 
 
 
@@ -123,7 +125,7 @@ else:
 # NEW POWER OUTAGES ---------------------------------------------------------------------
 # Save new outage data to the database 
 
-err = AppModelDB.SaveNewOutages(newOutages)
+err = AppModelDB.SaveNewOutages(newOutages, currentTime)
 
 if err != None:
     #There was a problem saving the new outages to the database. Handle this error                                          <----
@@ -179,7 +181,7 @@ for existingOutage in existingOutages:
 # Update database with new outage information
 dbUpdates = [outage for (_,_,outage) in updateOutages] #python list comprehension
 
-err = AppModelDB.UpdateOutage(dbUpdates)
+err = AppModelDB.UpdateOutage(dbUpdates, currentTime)
 
 if err != None:
     #There was a problem saving the updated outages to the database. Handle this error                                      <----
@@ -188,8 +190,8 @@ if err != None:
 
 
 
-# NEED TO SEND updateOutages TO THE CODE THAT HANDLES THIS IN AppModelUserContact                                           <----
-
+# Send outage updates to users
+AppModelUserContact.SendOutageUpdateAlerts(updateOutages)
 
 
 
