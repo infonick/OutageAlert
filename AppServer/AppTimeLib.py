@@ -16,7 +16,12 @@ JS_BASE_DATE_STR = '1970-01-01 00:00:00.000000 +0000'
 # Create a python datetime object
 JS_BASE_DATE_OBJ = datetime.datetime.strptime(JS_BASE_DATE_STR, '%Y-%m-%d %H:%M:%S.%f %z')
 
+  
 
+def DateTimeFromMySQLutcToPython (mySQLTime):
+    """Converts from a string representing the MySQL DATETIME data type to a Python DateTime object."""
+    mySQLTime += " +0000"
+    return datetime.datetime.strptime(mySQLTime, "%Y-%m-%d %H:%M:%S %z")
 
 
 def DateTimeFromJSToPython (mills):
@@ -28,6 +33,13 @@ def DateTimeFromJSToPython (mills):
     AdjDate = JS_BASE_DATE_OBJ + datetime.timedelta(milliseconds=mills) 
     return AdjDate
 
+
+def DateTimeFromJSToMySQL (mills):
+    """Converts from JavaScript Time in milliseconds to a string representing the MySQL DATETIME data type."""
+
+    pyDate = DateTimeFromJSToPython(mills)
+
+    return DateTimeFromPythonToMySQL(pyDate)
 
 
 def DateTimeFromPythonToJS (dtObject):
@@ -44,6 +56,16 @@ def DateTimeFromPythonToJS (dtObject):
     milliseconds += timeDifference.microseconds//1000   # milliseconds in a microsecond, using integer division
 
     return milliseconds
+
+
+def DateTimeFromPythonToMySQL (dtObject):
+    """Converts from a Python DateTime object to a string representing the MySQL DATETIME data type."""
+
+    # MySQL retrieves and displays DATETIME values in 'YYYY-MM-DD hh:mm:ss' format. 
+    
+    stringTime = dtObject.strftime("%Y-%m-%d %H:%M:%S")
+
+    return stringTime
 
 
 def PythonChangeTimeZone (UTCTime, offset):
@@ -100,11 +122,16 @@ jsmills = 1612723800000 #Sun Feb 07 2021 10:50:00 GMT-0800 (Pacific Standard Tim
 
 newDate = DateTimeFromJSToPython(jsmills)
 oldDate = DateTimeFromPythonToJS(newDate)
+mySQLDate1 = DateTimeFromJSToMySQL(jsmills)
+mySQLDate2 = DateTimeFromPythonToMySQL(newDate)
 
 print("JS OLD:", jsmills)
 print("JS NEW:", oldDate)
 print("PY NEW:", newDate)
 print("PY PST:", PythonChangeTimeZone(newDate, -8))
+print("MYSQL to PY:", DateTimeFromMySQLutcToPython(mySQLDate2))
+print("JS to MYSQL:", mySQLDate1)
+print("PY to MYSQL:", mySQLDate2)
 """
 
 # Correct Output for the above

@@ -1,7 +1,7 @@
 # Outage Alert
 # Application Server
 # AppModelDB
-#
+#  
 # Connects to the database for CRUD functions
 # 
 # Notable References:
@@ -9,13 +9,15 @@
 #
 # ---------------------------------------------------------------------------------------
 
-import mysql.connector, json
+import mysql.connector
+import json                            # Provides encoding and decoding functions for JSON strings/files
 from mysql.connector import Error
 from mysql.connector import errorcode
 
+import AppTimeLib                      # Custom date and time related functions for the OutageAlert application
+
 
 # Variable definitions
-outageTableName = "" #The name of the table that stores records of each power outage                                        <----
 mydb = ''
 mycursor = ''
 verbose = False #used for verbose output to the terminal for testing purposes. Change to 'True' to see output.
@@ -30,9 +32,9 @@ def OpenDBConnection():
 
     mydb = mysql.connector.connect(
     host="localhost",
-    user="yourusername",#                                                                                                   <---- update db login info & name
-    password="yourpassword",#                                                                                               <---- update db login info & name
-    database="mydatabase"#                                                                                                  <---- update db login info & name
+    user="OutageAlert",
+    password="VqD4fDBJtt40iwFP",
+    database="TestDB"
     )
     
     mydb.autocommit = False # Prevent SQL executions from automatically committing. Allows for a rollback if something goes wrong.
@@ -76,8 +78,8 @@ def GetOutageList(values):
     try:
         OpenDBConnection()
         
-        sql = 'SELECT * FROM ' + outageTableName + " WHERE 'id' IN " + str(tuple(values)) + " ORDER BY 'id' ASC;"
-        # "str(tuple(values))" is a tuple of id numbers, created fromthe supplied list. 
+        sql = "SELECT * FROM Outage WHERE OutageID IN " + str(tuple(values)) + " ORDER BY OutageID ASC;"
+        # "str(tuple(values))" is a tuple of id numbers, created from the supplied list. 
         # This is the format that MySQL needs in order to process process the SELECT statement in one request. 
 
         # Execute the SQL command
@@ -88,12 +90,12 @@ def GetOutageList(values):
 
         # Parse all json strings into dictionaries for easy handling in Python
         for i in range(len(myresult)):
-            myresult[i]['json'] = json.loads(myresult[i]['json'])
+            myresult[i]['json'] = json.loads(myresult[i]['Json'])
 
 
     # If an exception occours while opening a DB connection or accessing the DB
     except mysql.connector.Error as error :
-        err = "Failed to retrieve outage list: {}".format(error)
+        err = f"Failed to retrieve outage list: {error}"
 
     finally:
         CloseDBConnection()
@@ -102,7 +104,7 @@ def GetOutageList(values):
 
 
 
-def SaveNewOutages(outageList):
+def SaveNewOutages(outageList, jsonTime):
     """
     Takes a list of new outage dictionaries and saves them to the database.
 
@@ -113,16 +115,18 @@ def SaveNewOutages(outageList):
     global mycursor
 
     err = None
+    jsonTimeDB = AppTimeLib.DateTimeFromPythonToMySQL(jsonTime)
 
     try:
         OpenDBConnection()
 
         # SQL INSERT command
-        sql = "INSERT INTO " + outageTableName + " ('id', 'json') VALUES (%s, %s);"
+        sql = "INSERT INTO Outage (OutageID, Json, OutageTime, `Json Time`, `Outage Status`) VALUES (%s, %s, %s, %s, %s);"
 
         # For each new outage, insert a record for it into the database using the supplied values with the above SQL command
         for outage in outageList:
-            values = (outage['id'], json.dumps(outage))
+            outageTime = AppTimeLib.DateTimeFromJSToMySQL(outage['dateOff'])
+            values = (outage['id'], json.dumps(outage), outageTime, jsonTimeDB, 1)
             mycursor.execute(sql, values)
         
         # If INSERT commands were successful, permenantly commit the changes.
@@ -130,7 +134,7 @@ def SaveNewOutages(outageList):
     
     # If an exception occours while opening a DB connection or accessing the DB
     except mysql.connector.Error as error :
-        err = "Failed to insert record to database rollback: {}".format(error)
+        err = f"Failed to insert record to database rollback: {error}"
         # Database rollback because of exception - reverses all executed INSERT commands so that no changes take effect.
         mydb.rollback()
 
@@ -141,7 +145,7 @@ def SaveNewOutages(outageList):
 
 
 
-def UpdateOutage(outageUpdateList):
+def UpdateOutage(outageUpdateList, jsonTime):
     """
     Takes a list of outage dictionaries that have been updated and saves the updates to the database
 
@@ -152,16 +156,23 @@ def UpdateOutage(outageUpdateList):
     global mycursor
     
     err = None
+    jsonTimeDB = AppTimeLib.DateTimeFromPythonToMySQL(jsonTime)
 
     try:
         OpenDBConnection()
 
         # SQL UPDATE command
-        sql = "UPDATE " + outageTableName + " SET 'json' = %s WHERE 'id' = %s;"
+        sql = "UPDATE Outage SET Json = %s, `Json Time` = %s, `Outage Status` = %s WHERE OutageID = %s;"
 
         # For each updated outage, update the record for it in the database using the supplied values with the above SQL command
         for outage in outageUpdateList:
-            values = (json.dumps(outage), outage['id'])
+
+            # Set the Outage Status to 1='True', unless the outage shows that power has been restored then set to 0='False'
+            outageStatus = 1
+            if outage['dateOn'] != None:
+                outageStatus = 0
+            
+            values = (json.dumps(outage), jsonTimeDB, outageStatus, outage['id'])
             mycursor.execute(sql, values)
         
         # If UPDATE commands were successful, permenantly commit the changes.
@@ -169,7 +180,7 @@ def UpdateOutage(outageUpdateList):
     
     # If an exception occours while opening a DB connection or accessing the DB
     except mysql.connector.Error as error :
-        err = "Failed to insert record to database rollback: {}".format(error)
+        err = f"Failed to insert record to database rollback: {error}"
         # Database rollback because of exception - reverses all executed UPDATE commands so that no changes take effect.
         mydb.rollback()
 
