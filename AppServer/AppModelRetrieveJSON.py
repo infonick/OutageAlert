@@ -3,7 +3,7 @@
 # AppModelRetrieveJSON
 #
 # This script retrieves a JSON file from BC Hydro. The JSON file contains all current power outage data.
-# 
+#   
 # ---------------------------------------------------------------------------------------
 
 # Import custom modules

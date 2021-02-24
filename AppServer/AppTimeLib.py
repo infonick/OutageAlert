@@ -16,7 +16,7 @@ JS_BASE_DATE_STR = '1970-01-01 00:00:00.000000 +0000'
 # Create a python datetime object
 JS_BASE_DATE_OBJ = datetime.datetime.strptime(JS_BASE_DATE_STR, '%Y-%m-%d %H:%M:%S.%f %z')
 
-
+  
 
 def DateTimeFromMySQLutcToPython (mySQLTime):
     """Converts from a string representing the MySQL DATETIME data type to a Python DateTime object."""

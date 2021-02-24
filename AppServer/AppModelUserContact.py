@@ -3,7 +3,7 @@
 # AppModelUserContact
 #
 # This script handles generating messages for users and sending messages to users.
-# 
+#   
 # ---------------------------------------------------------------------------------------
 
 # Import custom modules
