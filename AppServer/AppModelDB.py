@@ -188,3 +188,125 @@ def UpdateOutage(outageUpdateList, jsonTime):
         CloseDBConnection()
     
     return err
+
+
+
+def GetProperties():
+    """
+    Retrieves all active properties from the database.
+    
+    Input: None.
+    Output: all database property columns & records
+    """
+    global mydb
+    global mycursor
+
+    myresult = []
+    err = None
+    
+
+    try:
+        OpenDBConnection()
+        
+        sql = "SELECT * FROM Property"
+        
+        # Execute the SQL command
+        mycursor.execute(sql) 
+
+        # Retrieve all of the results
+        myresult = mycursor.fetchall() 
+
+        # Parse all json strings into dictionaries for easy handling in Python
+        # for i in range(len(myresult)):
+        #     myresult[i]['json'] = json.loads(myresult[i]['Json'])
+
+
+    # If an exception occours while opening a DB connection or accessing the DB
+    except mysql.connector.Error as error :
+        err = f"Failed to retrieve outage list: {error}"
+
+    finally:
+        CloseDBConnection()
+
+    return (myresult, err)
+
+
+
+def InsertPropertyOutages(propOutageList):
+    """
+    Inserts a record into the `Property Outage` associative table in the DB which represents a link between 
+    an outage and a property. 
+    
+    Input: A list of dictionaries containing the property ID's and outage ID's. [{'outageID': number, 'propertyID': number}, ... ]
+    Output: None or error object
+    """
+    global mydb
+    global mycursor
+
+    err = None
+    isOutageActive = 1
+    
+    try:
+        OpenDBConnection()
+
+        # SQL INSERT command
+        sql = "INSERT INTO `Property Outage` (OutageID, PropertyID, Active) VALUES (%s, %s, %s);"
+
+        # For each new outage, insert a record for it into the database using the supplied values with the above SQL command
+        for outage in propOutageList:
+            values = (outage['outageID'], outage['propertyID'], isOutageActive)
+            mycursor.execute(sql, values)
+        
+        # If INSERT commands were successful, permenantly commit the changes.
+        mydb.commit()
+    
+    # If an exception occours while opening a DB connection or accessing the DB
+    except mysql.connector.Error as error :
+        err = f"Failed to insert record to database rollback: {error}"
+        # Database rollback because of exception - reverses all executed INSERT commands so that no changes take effect.
+        mydb.rollback()
+
+    finally:
+        CloseDBConnection()
+    
+    return err
+
+
+def UpdatePropertyOutages(propOutageList, isOutageActive):
+    """
+    Updates a record in the `Property Outage` associative table in the DB which represents a link between 
+    an outage and a property. 
+    
+    Input:  A list of dictionaries containing the property ID's and outage ID's: [{'outageID': number, 'propertyID': number}, ... ]
+            and a boolean 1='True' or 0='False' to indicate if the outage is active.
+    Output: None or error object
+    """
+    global mydb
+    global mycursor
+
+    err = None
+    
+    try:
+        OpenDBConnection()
+
+        # SQL INSERT command
+        sql = "UPDATE `Property Outage` SET Active = %s WHERE OutageID = %s AND PropertyID = %s);"
+
+        # For each new outage, insert a record for it into the database using the supplied values with the above SQL command
+        for outage in propOutageList:
+            values = (isOutageActive, outage['outageID'], outage['propertyID'])
+            mycursor.execute(sql, values)
+        
+        # If INSERT commands were successful, permenantly commit the changes.
+        mydb.commit()
+    
+    # If an exception occours while opening a DB connection or accessing the DB
+    except mysql.connector.Error as error :
+        err = f"Failed to insert record to database rollback: {error}"
+        # Database rollback because of exception - reverses all executed INSERT commands so that no changes take effect.
+        mydb.rollback()
+
+    finally:
+        CloseDBConnection()
+    
+    return err
