@@ -86,8 +86,8 @@ except:
     for line in sys.exc_info():
         print(line)
     # TODO: Program a routine that notifies the admin, etc.                                                                       <----
-    # TODO: Another thought, can an injection happen if the BCHydro json is compromised?                                          <----
-
+    # TODO: Another thought, can an injection to OutageAlert happen if the BCHydro json is compromised?                           <----
+    # TODO: If the BCHydro json is empty (no outages, or no new outages) can we skip all other processing?
 
 
 
@@ -213,12 +213,12 @@ ListOfOutageMessages += AppModelOutageMessages.GenerateOutageUpdateMessages(upda
 # EXISTING POWER OUTAGES - save json to DB & generate user messages for each outage
 
 
-# TODO: Calculate which properties are inside which new outages and add a record to the DB
-# TODO: Deactivate property-outages in the DB where power has been restored
-# TODO: Reactivate property-outages in the DB where power has been lost again
-# TODO: Retrieve user contact settings & property info from DB for updated/new outages
-# TODO: Send outage messages in ListOfOutageMessages to the users
-
+# TODO: Calculate which properties are inside which new outages and add a PropertyOutage record to the DB (use AppModelPolygonPointFunctions.py && use InsertPropertyOutages in AppModelDB.py)
+# TODO: Deactivate property-outages in the DB where power has been restored (use UpdatePropertyOutages in AppModelDB.py)
+# TODO: Reactivate property-outages in the DB where power has been lost again (use UpdatePropertyOutages in AppModelDB.py)
+# TODO: Retrieve user contact settings & property info from DB for updated/new outages (add DB functionality to AppModelDB.py)
+# TODO: Send outage messages in ListOfOutageMessages to the users (use functions in AppModelSESMail.py to send emails)
+# TODO: Rename AppModelRetrieveJSON.py to AppController.py and move non-controller functions (json functions,etc) to their own Model files.
 
 
 
