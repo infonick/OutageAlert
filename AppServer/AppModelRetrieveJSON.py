@@ -9,7 +9,7 @@
 # Import custom modules
 import AppTimeLib   # Custom date and time related functions for the OutageAlert application
 import AppModelDB   # Database commands
-import AppModelUserContact # Functions related to generating and sending messages to users.
+import AppModelOutageMessages # Functions related to generating and sending messages to users.
 
 # Import standard modules
 import requests     # Allows Python to send HTTP requests, used to retrieve BC Hydro JSON file
@@ -32,15 +32,15 @@ try:
 except requests.exceptions.ConnectionError:
     for line in sys.exc_info():
         print(line)
-    # Program a routine that notifies the admin and/or records a server connection error                                    <----
-    # Also need to handle what happens next with the program!
+    # TODO: Program a routine that notifies the admin and/or records a server connection error                                    <----
+    # TODO: Also need to handle what happens next with the program!
 
 except: 
     # For another type of error not explicitly caught above
     for line in sys.exc_info():
         print(line)
-    # Program a routine that notifies the admin and/or records the error                                                    <----
-    # Also need to handle what happens next with the program!
+    # TODO: Program a routine that notifies the admin and/or records the error                                                    <----
+    # TODO: Also need to handle what happens next with the program!
 
 
 
@@ -51,17 +51,17 @@ try:
 except:
     for line in sys.exc_info():
         print(line)
-    # Program a routine that notifies the admin in the event a HTTP request error code ocours, etc.                         <----
+    # TODO: Program a routine that notifies the admin in the event a HTTP request error code ocours, etc.                         <----
 
 
 if len(r.history) != 0:
-    # Program a routine that prompts an admin to review the byhydro json url. A redirect or other issue may be developing   <----
+    # TODO: Program a routine that prompts an admin to review the byhydro json url. A redirect or other issue may be developing   <----
     # https://requests.readthedocs.io/en/master/user/quickstart/#redirection-and-history
     pass
 
 
 if r.headers.get('content-type') != 'application/json':
-    # Program a routine to respond to an unkonwn file type that was retrieved                                               <----
+    # TODO: Program a routine to respond to an unkonwn file type that was retrieved                                               <----
     pass
 
 
@@ -74,7 +74,7 @@ try:
 
 except:
     currentTime = AppTimeLib.GetCurrentUTCTime() # Get the current time in UTC from the system if getting the time from the HTTP header is unsuccessful
-    # Program a routine that notifies the admin that retrieving the time from the HTTP header did not work                  <----
+    # TODO: Program a routine that notifies the admin that retrieving the time from the HTTP header did not work                  <----
 
 
 # Convert JSON file to a list of Python dictionaries:
@@ -85,9 +85,9 @@ except:
     # Error in parsing the json file
     for line in sys.exc_info():
         print(line)
-    # Program a routine that notifies the admin, etc.                                                                       <----
-    # Another thought, can an injection happen if the BCHydro json is compromised?                                          <----
-
+    # TODO: Program a routine that notifies the admin, etc.                                                                       <----
+    # TODO: Another thought, can an injection to OutageAlert happen if the BCHydro json is compromised?                           <----
+    # TODO: If the BCHydro json is empty (no outages, or no new outages) can we skip all other processing?
 
 
 
@@ -102,7 +102,7 @@ for outage in outages:
 (dbOutages, err) = AppModelDB.GetOutageList(outageIDList)
 
 if err != None:
-    # There was a problem retrieving the existing outages from the database. Handle this error                               <----
+    # TODO: There was a problem retrieving the existing outages from the database. Handle this error                               <----
     print("ERROR RETRIEVING EXISTING OUTAGES FROM DATABASE!")
 
 else:
@@ -128,14 +128,20 @@ else:
 err = AppModelDB.SaveNewOutages(newOutages, currentTime)
 
 if err != None:
-    #There was a problem saving the new outages to the database. Handle this error                                          <----
+    # TODO:There was a problem saving the new outages to the database. Handle this error                                          <----
     print("NEW OUTAGE DATA NOT SAVED TO DATABASE!")
     print(err)
 
+# Generate the messages we will send to users for the new outages
+ListOfOutageMessages = AppModelOutageMessages.GenerateNewOutageMessages(newOutages)
 
 
-# Alert users of new outages                                                                                                <----
-# NEED TO SEND newOutages TO THE CODE THAT HANDLES THIS IN AppModelUserContact                                              <----   
+# TODO: Calculate which properties are inside which new outages and add a record to the DB
+# TODO: Find a more efficient way to retrieve a more concise list of relevant properties from the DB
+allProperties = AppModelDB.GetProperties()
+
+
+
 
 
 
@@ -173,7 +179,7 @@ for existingOutage in existingOutages:
             
     
     if left > right:
-        # Program a routine to deal with cases where two outage records did not coincide                                    <----
+        # TODO: Program a routine to deal with cases where two outage records did not coincide                                    <----
         print('ERROR: AN EXISTING OUTAGE WAS NOT FOUND IN THE DB RECORDS!')
 
 
@@ -184,16 +190,35 @@ dbUpdates = [outage for (_,_,outage) in updateOutages] #python list comprehensio
 err = AppModelDB.UpdateOutage(dbUpdates, currentTime)
 
 if err != None:
-    #There was a problem saving the updated outages to the database. Handle this error                                      <----
+    # TODO:There was a problem saving the updated outages to the database. Handle this error                                      <----
     print("UPDATED OUTAGE DATA NOT SAVED TO DATABASE!")
     print(err)
 
 
+# Generate the messages we will send to users for the outage updates and add that to the list of outage messages.
+ListOfOutageMessages += AppModelOutageMessages.GenerateOutageUpdateMessages(updateOutages)
 
-# Send outage updates to users
-AppModelUserContact.SendOutageUpdateAlerts(updateOutages)
 
 
+
+
+
+
+
+# COMPLETE:
+# Retrieve the json file from BC Hydro
+# Handle the retrieved JSON file
+# Sort outages into new and existing categories
+# NEW POWER OUTAGES - save json to DB & generate user messages for each outage
+# EXISTING POWER OUTAGES - save json to DB & generate user messages for each outage
+
+
+# TODO: Calculate which properties are inside which new outages and add a PropertyOutage record to the DB (use AppModelPolygonPointFunctions.py && use InsertPropertyOutages in AppModelDB.py)
+# TODO: Deactivate property-outages in the DB where power has been restored (use UpdatePropertyOutages in AppModelDB.py)
+# TODO: Reactivate property-outages in the DB where power has been lost again (use UpdatePropertyOutages in AppModelDB.py)
+# TODO: Retrieve user contact settings & property info from DB for updated/new outages (add DB functionality to AppModelDB.py)
+# TODO: Send outage messages in ListOfOutageMessages to the users (use functions in AppModelSESMail.py to send emails)
+# TODO: Rename AppModelRetrieveJSON.py to AppController.py and move non-controller functions (json functions,etc) to their own Model files.
 
 
 
