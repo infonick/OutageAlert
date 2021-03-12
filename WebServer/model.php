@@ -28,14 +28,50 @@ function check_existence($email) {
 }
 
 # TODO - method to check if user information entered is valid
+function check_validity($email, $password) {
+    global $conn;
+
+    $hashed_password = hash("SHA256", $password);
+
+    $sql = "SELECT * FROM Account WHERE Email='$email' AND Password='$hashed_password'";
+    $result = mysqli_query($conn, $sql);
+
+    while ($row = mysqli_fetch_assoc($result)) {
+        if ($hashed_password == $row["Password"]) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+}
+
 # TODO - method to check if a user's account is locked
 # TODO - method to add a new user
+function new_account($email, $password) {
+    global $conn;
+
+    $created_date = date("Ymd");
+    $hashed_password = hash("SHA256", $password);
+
+    $sql = "INSERT INTO Account VALUES (NULL, '$hashed_password', '$email', $created_date, 0)";
+    if (mysqli_query($conn, $sql)) {
+        error_log("New user successfully added.");
+        print("SUCCESS???!!");
+    }
+    else {
+        error_log("Error: ").$sql.("<br>").$conn->error;
+        print($conn->error);
+    }
+}
+
 # TODO - method to change user's password
 
 # TODO - method to add a new property
 # TODO - method to edit a property's details
 
 # TODO - method to add a new recipient
+
 # TODO - method to edit a recipient's details
 # TODO - method to change if user receives text message
 # TODO - method to change if user receives email

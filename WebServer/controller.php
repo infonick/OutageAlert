@@ -2,8 +2,9 @@
 
 # set initial view to startpage with signin dialog
 if (!isset($_POST["page"])){
-    include ("view_startpage.html");
+    include ("view_startpage.php");
     $display_type = "signin";
+    $error_msg = "testing";
     exit();
 }
 
@@ -15,19 +16,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'){
     if ($_POST['page'] == 'StartPage'){
         $command = $_POST['command'];
         switch ($command){
-            case 'SignIn':
-                # check if valid signin information - if yes set session variables and redirect to main page
-                if(check_validity($_POST['email'], $_POST['password'])){
+            case 'SignInCheck':
+                if(!check_validity($_POST['email'], $_POST['password'])){
                     # TODO: check if account is locked, set content to indicate this if so
-                    $_SESSION['signedin'] = 'YES';
-                    include('view_mainpage.html');
+                    $result = false;
+                    echo $result;
                 }
-                else{
-                    $error_msg = 'Invalid email and/or password.';
+                else {
+                    $result = true;
+                    echo $result;
                 }
                 exit();
-            case 'Join':
-                # TODO: do this check in startpage instead to update bootstrap invalid feedback div via ajax request
+            case 'SignIn':
+                # TODO: check if account is locked, set content to indicate this if so
+                $_SESSION['signedin'] = 'YES';
+                include('view_mainpage.php');
+
+                exit();
+            case 'JoinCheck':
                 if(check_existence($_POST['email'])){
                     $result = true;
                     echo $result;
@@ -36,6 +42,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'){
                     $result = false;
                     echo $result;
                 }
+                exit();
+            case 'Join':
+                # TODO: do this check in startpage instead to update bootstrap invalid feedback div via ajax request
+                new_account($_POST['email'], $_POST['password']);
+                include('view_mainpage.php');
+
                 exit();
             case 'ForgotPassword':
                 # TODO: set up some sort of email based reset password configuration
