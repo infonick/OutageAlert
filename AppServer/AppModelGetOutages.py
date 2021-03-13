@@ -1,6 +1,6 @@
 # Outage Alert
 # Application Server
-# AppModelRetrieveJSON
+# AppModelGetOutages
 #
 # This script retrieves a JSON file from BC Hydro. The JSON file contains all current power outage data.
 #   
@@ -126,4 +126,4 @@ def SortOutages(outages):
             else:
                 newOutages.append(outage.copy()) # Otherwise add it to a list of newly discovered outages
 
-    return (newOutages, existingOutages)
+    return (newOutages, existingOutages, dbOutages)

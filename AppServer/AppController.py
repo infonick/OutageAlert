@@ -1,8 +1,8 @@
 # Outage Alert
 # Application Server
-# AppModelRetrieveJSON
+# AppController
 #
-# This script retrieves a JSON file from BC Hydro. The JSON file contains all current power outage data.
+# This script is the main controller file
 #   
 # ---------------------------------------------------------------------------------------
 
@@ -11,6 +11,8 @@ import AppTimeLib   # Custom date and time related functions for the OutageAlert
 import AppModelDB   # Database commands
 import AppModelOutageMessages # Functions related to generating and sending messages to users.
 import AppModelGetOutages     # Functions related to retrieving and sorting outage information
+import AppModelPolygonPointFunctions  # Functions for polygons and coordinates
+
 
 # Import standard modules
 import requests     # Allows Python to send HTTP requests, used to retrieve BC Hydro JSON file
@@ -26,7 +28,7 @@ import json         # Provides encoding and decoding functions for JSON strings/
 
 outages, currentTime = AppModelGetOutages.RetrieveBCHydro()
 
-newOutages, existingOutages = AppModelGetOutages.SortOutages(outages)
+newOutages, existingOutages, dbOutages = AppModelGetOutages.SortOutages(outages)
 
 
 
@@ -37,7 +39,7 @@ newOutages, existingOutages = AppModelGetOutages.SortOutages(outages)
 err = AppModelDB.SaveNewOutages(newOutages, currentTime)
 
 if err != None:
-    # TODO:There was a problem saving the new outages to the database. Handle this error                                          <----
+    # TODO:There was a problem saving the new outages to the database. Handle this error                                         <----
     print("NEW OUTAGE DATA NOT SAVED TO DATABASE!")
     print(err)
 
@@ -45,13 +47,31 @@ if err != None:
 ListOfOutageMessages = AppModelOutageMessages.GenerateNewOutageMessages(newOutages)
 
 
-# TODO: Calculate which properties are inside which new outages and add a record to the DB
 # TODO: Find a more efficient way to retrieve a more concise list of relevant properties from the DB
-allProperties = AppModelDB.GetProperties()
+allProperties, err = AppModelDB.GetProperties()
+
+if err != None:
+    # TODO:There was a problem retrieving property info from the database. Handle this error                                     <----
+    print("PROPERTY INFO NOT RETRIEVED FROM DATABASE!")
+    print(err)
 
 
+# TODO: Calculate which properties are inside which new outages and add a record to the DB
 
+propOutageList = []
 
+for property in allProperties:
+    for outage in newOutages:
+        if AppModelPolygonPointFunctions.PointInPolygon(property['latitude'], property['longitude'], outage['polygon']):
+        
+        
+        propOutageList.append({'outageID': , 'propertyID': })
+
+err = InsertPropertyOutages(propOutageList)
+if err != None:
+    # TODO:There was a problem saving the new property-outages to the database. Handle this error                                <----
+    print("NEW PROPERTY-OUTAGE DATA NOT SAVED TO DATABASE!")
+    print(err)
 
 
 # EXISTING POWER OUTAGES ----------------------------------------------------------------

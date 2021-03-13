@@ -1,4 +1,10 @@
-# Test for working with polygons and locations
+# Outage Alert
+# Application Server
+# AppModelPolygonPointFunctions
+#
+# This script has functions for ploygons and coordinates
+#   
+# ---------------------------------------------------------------------------------------
   
 import shapely
 from shapely.geometry import Point, Polygon
