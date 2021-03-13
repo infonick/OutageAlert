@@ -56,18 +56,18 @@ if err != None:
     print(err)
 
 
-# TODO: Calculate which properties are inside which new outages and add a record to the DB
+# Calculate which properties are inside which new outages and add a property-outage record to the DB
 
 propOutageList = []
 
 for property in allProperties:
     for outage in newOutages:
         if AppModelPolygonPointFunctions.PointInPolygon(property['latitude'], property['longitude'], outage['polygon']):
-        
-        
-        propOutageList.append({'outageID': , 'propertyID': })
+            propOutageList.append({'outageID': outage['id'], 'propertyID': property['PropertyID']})
+            break
+    # TODO: In the future, it may be a good idea to also check for properties that were added after an outage had started.
 
-err = InsertPropertyOutages(propOutageList)
+err = AppModelDB.InsertPropertyOutages(propOutageList)
 if err != None:
     # TODO:There was a problem saving the new property-outages to the database. Handle this error                                <----
     print("NEW PROPERTY-OUTAGE DATA NOT SAVED TO DATABASE!")
@@ -140,9 +140,9 @@ ListOfOutageMessages += AppModelOutageMessages.GenerateOutageUpdateMessages(upda
 # Sort outages into new and existing categories
 # NEW POWER OUTAGES - save json to DB & generate user messages for each outage
 # EXISTING POWER OUTAGES - save json to DB & generate user messages for each outage
+# Calculate which properties are inside which new outages and add a PropertyOutage record to the DB (use AppModelPolygonPointFunctions.py && use InsertPropertyOutages in AppModelDB.py)
 
 
-# TODO: Calculate which properties are inside which new outages and add a PropertyOutage record to the DB (use AppModelPolygonPointFunctions.py && use InsertPropertyOutages in AppModelDB.py)
 # TODO: Deactivate property-outages in the DB where power has been restored (use UpdatePropertyOutages in AppModelDB.py)
 # TODO: Reactivate property-outages in the DB where power has been lost again (use UpdatePropertyOutages in AppModelDB.py)
 # TODO: Retrieve user contact settings & property info from DB for updated/new outages (add DB functionality to AppModelDB.py)
