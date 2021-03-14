@@ -127,7 +127,11 @@ if err != None:
 # Generate the messages we will send to users for the outage updates and add that to the list of outage messages.
 ListOfOutageMessages += AppModelOutageMessages.GenerateOutageUpdateMessages(updateOutages)
 
-
+# For any outages that have ended, disable the property-outage recrod in the DB
+err = AppModelGetOutages.DeactivateOutages(existingOutages)
+if err != None:
+            # TODO: There was a problem updating the database. Handle this error                               <----
+            print("AppModelGetOutages.DeactivateOutages(): ERROR Deactivating Outages IN DATABASE!")
 
 
 
@@ -141,13 +145,15 @@ ListOfOutageMessages += AppModelOutageMessages.GenerateOutageUpdateMessages(upda
 # NEW POWER OUTAGES - save json to DB & generate user messages for each outage
 # EXISTING POWER OUTAGES - save json to DB & generate user messages for each outage
 # Calculate which properties are inside which new outages and add a PropertyOutage record to the DB (use AppModelPolygonPointFunctions.py && use InsertPropertyOutages in AppModelDB.py)
+# Retrieve user contact settings & property info from DB for updated/new outages (add DB functionality to AppModelDB.py)
+# Rename AppModelRetrieveJSON.py to AppController.py and move non-controller functions (json functions,etc) to their own Model files.
+# Deactivate property-outages in the DB where power has been restored (use UpdatePropertyOutages in AppModelDB.py)
 
 
-# TODO: Deactivate property-outages in the DB where power has been restored (use UpdatePropertyOutages in AppModelDB.py)
-# TODO: Reactivate property-outages in the DB where power has been lost again (use UpdatePropertyOutages in AppModelDB.py)
-# TODO: Retrieve user contact settings & property info from DB for updated/new outages (add DB functionality to AppModelDB.py)
-# TODO: Send outage messages in ListOfOutageMessages to the users (use functions in AppModelSESMail.py to send emails)
-# TODO: Rename AppModelRetrieveJSON.py to AppController.py and move non-controller functions (json functions,etc) to their own Model files.
+
+# TODO: Reactivate property-outages in the DB where power has been lost again (use UpdatePropertyOutages in AppModelDB.py) (LOW PRIORITY)
+# TODO: Send outage messages in ListOfOutageMessages to the users (use functions in AppModelSESMail.py to send emails; use GetOutageUsersByPhone() & GetOutageUsersByEmail() )
+# TODO: Unit, Component, and System testing
 
 
 

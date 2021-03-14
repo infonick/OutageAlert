@@ -127,3 +127,23 @@ def SortOutages(outages):
                 newOutages.append(outage.copy()) # Otherwise add it to a list of newly discovered outages
 
     return (newOutages, existingOutages, dbOutages)
+
+
+
+
+# TODO: Deactivate PropertyOutage records in the DB where power has been restored to a property (use UpdatePropertyOutages in AppModelDB.py)
+def DeactivateOutages(existingOutages):
+    outagesThatHaveEnded = []
+    for existingOutage in existingOutages:
+        if existingOutage['dateOn'] != None:
+            outagesThatHaveEnded.append(existingOutage.copy())
+
+    err = None
+
+    if len(outagesThatHaveEnded) > 0:
+        err = AppModelDB.UpdatePropertyOutages(outagesThatHaveEnded, 0)
+        if err != None:
+            # TODO: There was a problem updating the database. Handle this error                               <----
+            print("AppModelGetOutages.DeactivateOutages(): ERROR Deactivating Outages IN DATABASE!")
+
+    return err

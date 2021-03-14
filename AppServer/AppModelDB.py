@@ -310,3 +310,89 @@ def UpdatePropertyOutages(propOutageList, isOutageActive):
         CloseDBConnection()
     
     return err
+
+
+
+
+# Retrieve user contact settings & property info from DB for updated/new outages (add DB functionality to AppModelDB.py)                <----
+def GetOutageUsersByEmail():
+    """
+    Retrieve user email contact settings & property info from DB for updated/new outages
+    
+    Input: None.
+    Output: A dictionary containing PropertyID, `Property Name`, Address, Recipients.Name, Recipients.`Contact Email`
+    """
+    global mydb
+    global mycursor
+
+    myresult = []
+    err = None
+    
+
+    try:
+        OpenDBConnection()
+        
+        sql =  "SELECT Property.PropertyID, Property.`Property Name`, Property.Address, Recipients.Name, Recipients.`Contact Email` "
+        sql += "FROM (((`Property Outage` INNER JOIN Property ON `Property Outage`.PropertyID = Property.PropertyID) "
+        sql += "INNER JOIN `Recipient Properties` ON Property.PropertyID = `Recipient Properties`.PropertyID) "
+        sql += "INNER JOIN Recipients ON Recipients.Name = `Recipient Properties`.Name AND Recipients.AccountID = `Recipient Properties`.AccountID) "
+        sql += "WHERE `Property Outage`.Active = True AND Recipients.Email IS NOT NULL "
+        sql += "ORDER BY Recipients.Email ASC;"
+        
+        # Execute the SQL command
+        mycursor.execute(sql) 
+
+        # Retrieve all of the results
+        myresult = mycursor.fetchall() 
+
+    # If an exception occours while opening a DB connection or accessing the DB
+    except mysql.connector.Error as error :
+        err = f"Failed to retrieve user contact settings & property info from DB for updated/new outages: {error}"
+
+    finally:
+        CloseDBConnection()
+
+    return (myresult, err)
+
+
+
+
+# Retrieve user contact settings & property info from DB for updated/new outages (add DB functionality to AppModelDB.py)                <----
+def GetOutageUsersByPhone():
+    """
+    Retrieve user phone contact settings & property info from DB for updated/new outages
+    
+    Input: None.
+    Output: A dictionary containing PropertyID, `Property Name`, Address, Recipients.Name, Recipients.Phone
+    """
+    global mydb
+    global mycursor
+
+    myresult = []
+    err = None
+    
+
+    try:
+        OpenDBConnection()
+        
+        sql =  "SELECT Property.PropertyID, Property.`Property Name`, Property.Address, Recipients.Name, Recipients.Phone "
+        sql += "FROM (((`Property Outage` INNER JOIN Property ON `Property Outage`.PropertyID = Property.PropertyID) "
+        sql += "INNER JOIN `Recipient Properties` ON Property.PropertyID = `Recipient Properties`.PropertyID) "
+        sql += "INNER JOIN Recipients ON Recipients.Name = `Recipient Properties`.Name AND Recipients.AccountID = `Recipient Properties`.AccountID) "
+        sql += "WHERE `Property Outage`.Active = True AND Recipients.Phone IS NOT NULL "
+        sql += "ORDER BY Recipients.Phone ASC;"
+        
+        # Execute the SQL command
+        mycursor.execute(sql) 
+
+        # Retrieve all of the results
+        myresult = mycursor.fetchall() 
+
+    # If an exception occours while opening a DB connection or accessing the DB
+    except mysql.connector.Error as error :
+        err = f"Failed to retrieve user contact settings & property info from DB for updated/new outages: {error}"
+
+    finally:
+        CloseDBConnection()
+
+    return (myresult, err)
