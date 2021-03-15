@@ -1,14 +1,21 @@
-﻿body {
+﻿body{
+    color: dimgray;
+}
+h2 {
+    color: slategray;
+    font-size: 4em;
+}
 
-    h2 {
-       color: dimgrey;
-       font-size: 2em;
-       text-align: center;
-    }
+.col-lg-6 p {
+    font-size: 1.2em;
+    color: dimgray;
+    font-weight: bold;
+    font-family: Arial, Helvetica, sans-serif;
+}
 
-    p {
-       font-size:;
-    }
-
-
+.col-lg-6 form {
+    border: 1px solid rgb(179, 179, 179);
+    border-radius: 5px;
+    background-color: rgb(241, 241, 241);
+    box-shadow: 5px 5px 10px #888888;
 }
