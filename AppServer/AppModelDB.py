@@ -216,11 +216,6 @@ def GetProperties():
         # Retrieve all of the results
         myresult = mycursor.fetchall() 
 
-        # Parse all json strings into dictionaries for easy handling in Python
-        # for i in range(len(myresult)):
-        #     myresult[i]['json'] = json.loads(myresult[i]['Json'])
-
-
     # If an exception occours while opening a DB connection or accessing the DB
     except mysql.connector.Error as error :
         err = f"Failed to retrieve outage list: {error}"
@@ -272,7 +267,7 @@ def InsertPropertyOutages(propOutageList):
     return err
 
 
-def UpdatePropertyOutages(propOutageList, isOutageActive):
+def UpdatePropertyOutages(outageList, isOutageActive):
     """
     Updates a record in the `Property Outage` associative table in the DB which represents a link between 
     an outage and a property. 
@@ -290,11 +285,11 @@ def UpdatePropertyOutages(propOutageList, isOutageActive):
         OpenDBConnection()
 
         # SQL INSERT command
-        sql = "UPDATE `Property Outage` SET Active = %s WHERE OutageID = %s AND PropertyID = %s);"
+        sql = "UPDATE `Property Outage` SET Active = %s WHERE OutageID = %s);"
 
         # For each new outage, insert a record for it into the database using the supplied values with the above SQL command
-        for outage in propOutageList:
-            values = (isOutageActive, outage['outageID'], outage['propertyID'])
+        for outage in outageList:
+            values = (isOutageActive, outage['id'])
             mycursor.execute(sql, values)
         
         # If INSERT commands were successful, permenantly commit the changes.
@@ -302,7 +297,7 @@ def UpdatePropertyOutages(propOutageList, isOutageActive):
     
     # If an exception occours while opening a DB connection or accessing the DB
     except mysql.connector.Error as error :
-        err = f"Failed to insert record to database rollback: {error}"
+        err = f"Failed to update property outage record to {isOutageActive}: {error}"
         # Database rollback because of exception - reverses all executed INSERT commands so that no changes take effect.
         mydb.rollback()
 
@@ -337,7 +332,7 @@ def GetOutageUsersByEmail():
         sql += "INNER JOIN `Recipient Properties` ON Property.PropertyID = `Recipient Properties`.PropertyID) "
         sql += "INNER JOIN Recipients ON Recipients.Name = `Recipient Properties`.Name AND Recipients.AccountID = `Recipient Properties`.AccountID) "
         sql += "WHERE `Property Outage`.Active = True AND Recipients.Email IS NOT NULL "
-        sql += "ORDER BY Recipients.Email ASC;"
+        sql += "ORDER BY Recipients.Email ASC, Recipients.Name ASC;"
         
         # Execute the SQL command
         mycursor.execute(sql) 
@@ -375,12 +370,12 @@ def GetOutageUsersByPhone():
     try:
         OpenDBConnection()
         
-        sql =  "SELECT Property.PropertyID, Property.`Property Name`, Property.Address, Recipients.Name, Recipients.Phone "
+        sql =  "SELECT `Property Outage`.OutageID, Property.PropertyID, Property.`Property Name`, Property.Address, Recipients.Name, Recipients.Phone "
         sql += "FROM (((`Property Outage` INNER JOIN Property ON `Property Outage`.PropertyID = Property.PropertyID) "
         sql += "INNER JOIN `Recipient Properties` ON Property.PropertyID = `Recipient Properties`.PropertyID) "
         sql += "INNER JOIN Recipients ON Recipients.Name = `Recipient Properties`.Name AND Recipients.AccountID = `Recipient Properties`.AccountID) "
         sql += "WHERE `Property Outage`.Active = True AND Recipients.Phone IS NOT NULL "
-        sql += "ORDER BY Recipients.Phone ASC;"
+        sql += "ORDER BY Recipients.Phone ASC, Recipients.Name ASC;"
         
         # Execute the SQL command
         mycursor.execute(sql) 

@@ -12,6 +12,7 @@ import AppModelDB   # Database commands
 import AppModelOutageMessages # Functions related to generating and sending messages to users.
 import AppModelGetOutages     # Functions related to retrieving and sorting outage information
 import AppModelPolygonPointFunctions  # Functions for polygons and coordinates
+import AppModelSESMail  # Functions for sending emails through SES
 
 
 # Import standard modules
@@ -26,9 +27,9 @@ import json         # Provides encoding and decoding functions for JSON strings/
 
 # Get a fresh list of outages and sort them into new/existing lists ---------------------
 
-outages, currentTime = AppModelGetOutages.RetrieveBCHydro()
+(outages, currentTime) = AppModelGetOutages.RetrieveBCHydro()
 
-newOutages, existingOutages, dbOutages = AppModelGetOutages.SortOutages(outages)
+(newOutages, existingOutages, dbOutages) = AppModelGetOutages.SortOutages(outages)
 
 
 
@@ -48,7 +49,7 @@ ListOfOutageMessages = AppModelOutageMessages.GenerateNewOutageMessages(newOutag
 
 
 # TODO: Find a more efficient way to retrieve a more concise list of relevant properties from the DB
-allProperties, err = AppModelDB.GetProperties()
+(allProperties, err) = AppModelDB.GetProperties()
 
 if err != None:
     # TODO:There was a problem retrieving property info from the database. Handle this error                                     <----
@@ -127,12 +128,28 @@ if err != None:
 # Generate the messages we will send to users for the outage updates and add that to the list of outage messages.
 ListOfOutageMessages += AppModelOutageMessages.GenerateOutageUpdateMessages(updateOutages)
 
-# For any outages that have ended, disable the property-outage recrod in the DB
+# For any outages that have ended, disable the property-outage record in the DB
 err = AppModelGetOutages.DeactivateOutages(existingOutages)
 if err != None:
-            # TODO: There was a problem updating the database. Handle this error                               <----
+            # TODO: There was a problem updating the database. Handle this error (duplicate error handling also in AppModelGetOutages.DeactivateOutages())     <----
             print("AppModelGetOutages.DeactivateOutages(): ERROR Deactivating Outages IN DATABASE!")
 
+
+
+# SEND MESSAGES ----------------------------------------------------------------
+(OutageUsersByEmail, err) = AppModelDB.GetOutageUsersByEmail()
+if err != None:
+    # TODO: There was a problem retrieving info from the database. Handle this error                                             <----
+    print("ERROR RETREIVING OutageUsersByEmail!")
+
+(OutageUsersByPhone, err) = AppModelDB.GetOutageUsersByPhone()
+if err != None:
+    # TODO: There was a problem retrieving info from the database. Handle this error                                             <----
+    print("ERROR RETREIVING OutageUsersByPhone!")
+
+messages = AppModelSESMail.createEmailMessages(ListOfOutageMessages, OutageUsersByEmail)
+
+AppModelSESMail.sendOutageEmailsToUsers(messages)
 
 
 
@@ -148,12 +165,10 @@ if err != None:
 # Retrieve user contact settings & property info from DB for updated/new outages (add DB functionality to AppModelDB.py)
 # Rename AppModelRetrieveJSON.py to AppController.py and move non-controller functions (json functions,etc) to their own Model files.
 # Deactivate property-outages in the DB where power has been restored (use UpdatePropertyOutages in AppModelDB.py)
+# Send outage messages in ListOfOutageMessages to the users (use functions in AppModelSESMail.py to send emails; use GetOutageUsersByPhone() & GetOutageUsersByEmail() )
 
-
-
-# TODO: Reactivate property-outages in the DB where power has been lost again (use UpdatePropertyOutages in AppModelDB.py) (LOW PRIORITY)
-# TODO: Send outage messages in ListOfOutageMessages to the users (use functions in AppModelSESMail.py to send emails; use GetOutageUsersByPhone() & GetOutageUsersByEmail() )
 # TODO: Unit, Component, and System testing
+# TODO: Reactivate property-outages in the DB where power has been lost again (use UpdatePropertyOutages in AppModelDB.py) (LOW PRIORITY)
 
 
 

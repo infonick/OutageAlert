@@ -63,3 +63,43 @@ def sendOutageEmailsToUsers(messages):
         # TODO: add more specific error handling and logging
 
 
+
+
+def createEmailMessages(ListOfOutageMessages, OutageUsersByEmail):
+    # Reference: ListOfOutageMessages[i](id#,[(),()]) = [ (OutageIDNumber, [ ('key', int_priority, "message"), ('key', int_priority, "message"), ... ]),  ... ]
+    # Reference: OutageUsersByEmail[i][key]     where    key = 'OutageID' 'PropertyID', 'Property Name', 'Address', 'Name', 'Contact Email' 
+    
+    messages = []
+
+    for i in range(len(OutageUsersByEmail)):
+        newMessage  = f"Hello {OutageUsersByEmail[i]['Name']},\n"
+        newMessage += f"A power outage has been detected. A listing of updates follows:\n"
+        newMessage += f"---------------------------------------------------------------\n"
+        newMessage += f"{OutageUsersByEmail[i]['Property Name']}: \n"
+        newMessages += getMessagesFromList(ListOfOutageMessages, {OutageUsersByEmail[i]['OutageID'])
+        newMessage += f"\n---------------------------------------------------------------"
+
+        while (OutageUsersByEmail[i]['Name'] == OutageUsersByEmail[i+1]['Name']) and (OutageUsersByEmail[i]['Contact Email'] == OutageUsersByEmail[i+1]['Contact Email']):
+            i += 1
+            newMessage += f"{OutageUsersByEmail[i]['Property Name']}: \n"
+            newMessages += getMessagesFromList(ListOfOutageMessages, {OutageUsersByEmail[i]['OutageID'])
+            newMessage += f"\n---------------------------------------------------------------"
+        
+        messages.append(   {'recipientEmail': OutageUsersByEmail[i]['Contact Email'], 
+                            'emailMessage': newMessage
+                            })
+
+    return messages
+
+
+
+def getMessagesFromList(ListOfOutageMessages, OutageID):
+    
+    outageMessages = ""
+
+    for (OutageIDNumber, msgList) in ListOfOutageMessages:
+        if OutageIDNumber == OutageID:
+            for (key, priority, msg) in msgList:
+                outageMessages += f"  - {msg}\n"
+
+    return outageMessages             
