@@ -48,10 +48,12 @@
                     $('#joinpassword').attr('type', 'password');
                 }
             });
+            // submit given information for validation when clicking create account button
             $('#create-account').click(function () {
                 checkCreateAccount();
                 //$('#signupform').submit();
             });
+            // submit given information for validation when clicking sign in button
             $('#sign-in-button').click(function () {
                 checkSignIn();
             });
@@ -142,7 +144,12 @@
                         // if already exists, set invalid feedback of div
                         document.getElementById("join-email-error").innerText = "An account under this email already exists."
                     } else {
-                        $('#signupform').submit();
+                        $('#create-success').toast({delay:1000});
+                        $('#create-success').toast('show');
+                        // delay submitting form so the toast doesn't disappear immediately
+                        setTimeout(function () {
+                            $('#signupform').submit();
+                        }, 1000);
                     }
                 });
         }
@@ -182,7 +189,11 @@
                         document.getElementById("signin-email-error").innerText = "Invalid sign in information."
                         document.getElementById("signin-password-error").innerText = ""
                     } else {
-                        $('#signinform').submit();
+                        $('#signin-success').toast({delay:1000});
+                        $('#signin-success').toast('show');
+                        setTimeout(function () {
+                            $('#signinform').submit();
+                        }, 1000);
                     }
                 });
         }
@@ -209,9 +220,7 @@
             </div>
         </div>
         <div class="col-lg-6" style="padding-top: 175px; padding-right: 100px">
-
-            <!--TODO - update with proper URL -->
-            <form id="signinform" action="https://ec2-35-183-181-30.ca-central-1.compute.amazonaws.com/controller.php" method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']);?>">
+                <form id="signinform" action="https://ec2-35-183-181-30.ca-central-1.compute.amazonaws.com/controller.php" method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']);?>">
                 <input type="hidden" name="page" value="StartPage">
                 <h4>Sign In</h4>
                 <div class="form-group">
@@ -232,6 +241,10 @@
                     <label class="form-check-label" for="showpasslogin">Show Password</label>
                     <button type="button" class="btn btn-primary float-right" id="sign-in-button">Sign In</button>
                     <input type="hidden" name="command" value="SignIn">
+                    <div class="toast text-white bg-success float-right" id="signin-success">
+                        <div class="toast-header">Account Information Verified</div>
+                        <div class="toast-body">Logging you in now.</div>
+                    </div>
                 </div>
                 <div class="form-check">
                     <input type="checkbox" class="form-check-input" id="rememberme" value="rememberme">
@@ -243,8 +256,6 @@
                     <button type="button" class="btn btn-primary" id="create_account_btn">Create an Account</button>
                 </div>
             </form>
-
-            <!--TODO - update with proper URL -->
             <form id="signupform" action="https://ec2-35-183-181-30.ca-central-1.compute.amazonaws.com/controller.php" method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']);?>">
                 <input type="hidden" name="page" value="StartPage">
                 <h4>Create Account</h4>
@@ -263,6 +274,10 @@
                     <label class="form-check-label" for="showpassjoin">Show Password</label>
                     <button type="button" class="btn btn-primary float-right" id="create-account">Create Account</button>
                     <input type="hidden" name="command" value="Join">
+                    <div class="toast text-white bg-success float-right" id="create-success">
+                        <div class="toast-header">Account Created</div>
+                        <div class="toast-body">Logging you in now.</div>
+                    </div>
                 </div>
                 <hr/>
                 <div class="form-group" style="text-align: center">
@@ -277,7 +292,7 @@
                 <div class="form-group">
                     <label for="email">Email Address:</label>
                     <input type="email" class="form-control" id="reset-email" name="email" value="email" required>
-                    <div class="invalid-feedback"><?php if(isset($error_msg)){echo $error_msg;} ?></div>
+                    <div class="invalid-feedback"></div>
                 </div>
                 <div class="form-group" style="padding-bottom: 50px">
                     <button type="button" class="btn btn-primary float-right" id="reset-password">Send Reset Request</button>

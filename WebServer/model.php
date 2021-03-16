@@ -27,7 +27,7 @@ function check_existence($email) {
     else { return false; }
 }
 
-# TODO - method to check if user information entered is valid
+# method to check if user information entered is valid
 function check_validity($email, $password) {
     global $conn;
 
@@ -47,7 +47,7 @@ function check_validity($email, $password) {
 }
 
 # TODO - method to check if a user's account is locked
-# TODO - method to add a new user
+# method to add a new user
 function new_account($email, $password) {
     global $conn;
 
@@ -57,20 +57,82 @@ function new_account($email, $password) {
     $sql = "INSERT INTO Account VALUES (NULL, '$hashed_password', '$email', $created_date, 0)";
     if (mysqli_query($conn, $sql)) {
         error_log("New user successfully added.");
-        print("SUCCESS???!!");
     }
     else {
         error_log("Error: ").$sql.("<br>").$conn->error;
-        print($conn->error);
     }
+}
+# method to get user id for faster database access
+function get_user_id($email) {
+    global $conn;
+
+    $sql = "SELECT AccountID FROM Account WHERE Email='$email'";
+    $result = mysqli_query($conn, $sql);
+    while ($row = mysqli_fetch_assoc($result)) {
+        return $row["AccountID"];
+    }
+    return -1;
 }
 
 # TODO - method to change user's password
 
 # TODO - method to add a new property
+function new_property($name, $address, $aid, $lat, $lon) {
+    global $conn;
+
+    $sql = "INSERT INTO Property VALUES (NULL, '$name', '$address', $aid, $lat, $lon)";
+    if (mysqli_query($conn, $sql)) {
+        error_log("New property successfully added.");
+    }
+    else {
+        error_log("Error: ").$sql.("<br>").$conn->error;
+    }
+}
+
+# TODO - method to add recipient properties into database
+# TODO - perhaps do this when creating property so each property has association with all recipients?
+
+function get_properties($userid) {
+    global $conn;
+
+    $sql = "SELECT Property Name, Address FROM Property WHERE AccountID='$userid'";
+    $result = mysqli_query($conn, $sql);
+
+    return $result;
+}
+
 # TODO - method to edit a property's details
 
-# TODO - method to add a new recipient
+# method to add a new recipient
+function new_recipient($name, $phonenumber, $email, $id) {
+    global $conn;
+
+    $sql = "INSERT INTO Recipients VALUES ('$name', $phonenumber, '$email', $id)";
+    if (mysqli_query($conn, $sql)) {
+        error_log("New recipient successfully added.");
+    }
+    else {
+        error_log("Error: ").$sql.("<br>").$conn->error;
+    }
+}
+
+function get_recipients($userid) {
+    global $conn;
+
+    $sql = "SELECT Name, Phone, Contact Email FROM Recipients WHERE AccountID='$userid'";
+    $result = mysqli_query($conn, $sql);
+
+    return $result;
+}
+
+function get_recipient_properties($userid) {
+    global $conn;
+
+    $sql = "SELECT Name, Active FROM Recipient Properties WHERE AccountID='$userid'";
+    $result = mysqli_query($conn, $sql);
+
+    return $result;
+}
 
 # TODO - method to edit a recipient's details
 # TODO - method to change if user receives text message
