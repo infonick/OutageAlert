@@ -53,7 +53,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'){
                 $_SESSION['email'] = $_POST['email'];
                 $_SESSION['userid'] = get_user_id($_SESSION['email']);
                 include('view_mainpage.php');
-
                 exit();
             case 'ForgotPassword':
                 # TODO: set up some sort of email based reset password configuration
@@ -75,19 +74,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'){
                 exit();
             case 'NewProperty':
                 // lat and long were just set at 150 to test
-                new_property($_POST['property-name'], $_POST['address'], $_SESSION['userid'], 150, 150);
+                new_property($_POST['name'], $_POST['address'], $_SESSION['userid'], 150, 150);
                 //create_recipient_properties($_SESSION['userid']);
                 exit();
             case 'EditProperty':
+                edit_property($_POST['name'], $_POST['address'], $_POST['oname'], $_POST['oaddress']);
                 exit();
+            case 'GetProperties':
+                $sproperties = get_properties($_SESSION['userid']);
+                $properties = array();
+                $i = 0;
+                while($row = mysqli_fetch_assoc($sproperties)){
+                    $properties[$i++] = $row;
+                }
+                $places = json_encode($properties);
+                echo $places;
+                break;
             case 'NewRecipient':
                 new_recipient($_POST['name'], $_POST['pnumber'], $_POST['email'], $_SESSION['userid']);
                 exit();
-            case 'EditRecipient':
-                exit();
-            case 'PhoneNotification':
-                exit();
-            case 'EmailNotification':
+            case 'NotificationStatus':
                 exit();
         }
     }

@@ -95,13 +95,21 @@ function new_property($name, $address, $aid, $lat, $lon) {
 function get_properties($userid) {
     global $conn;
 
-    $sql = "SELECT Property Name, Address FROM Property WHERE AccountID='$userid'";
+    $sql = "SELECT `Property Name`, Address FROM Property WHERE AccountID=$userid";
     $result = mysqli_query($conn, $sql);
 
     return $result;
 }
 
 # TODO - method to edit a property's details
+function edit_property($name, $address, $oname, $oaddress) {
+    global $conn;
+
+    $sql = "UPDATE Property SET `Property Name`='$name', Address='$address' WHERE `Property Name`='$oname' AND Address='$oaddress'";
+    $result = mysqli_query($conn, $sql);
+
+    return $result;
+}
 
 # method to add a new recipient
 function new_recipient($name, $phonenumber, $email, $id) {
@@ -119,7 +127,7 @@ function new_recipient($name, $phonenumber, $email, $id) {
 function get_recipients($userid) {
     global $conn;
 
-    $sql = "SELECT Name, Phone, Contact Email FROM Recipients WHERE AccountID='$userid'";
+    $sql = "SELECT Name, Phone, Contact Email FROM Recipients WHERE AccountID=$userid";
     $result = mysqli_query($conn, $sql);
 
     return $result;
@@ -128,7 +136,7 @@ function get_recipients($userid) {
 function get_recipient_properties($userid) {
     global $conn;
 
-    $sql = "SELECT Name, Active FROM Recipient Properties WHERE AccountID='$userid'";
+    $sql = "SELECT Name, Active FROM Recipient Properties WHERE AccountID=$userid";
     $result = mysqli_query($conn, $sql);
 
     return $result;
