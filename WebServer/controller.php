@@ -74,14 +74,44 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'){
                 exit();
             case 'NewProperty':
                 // lat and long were just set at 150 to test
+                # TODO - get actual latitude and longitude
                 new_property($_POST['name'], $_POST['address'], $_SESSION['userid'], 150, 150);
-                //create_recipient_properties($_SESSION['userid']);
                 exit();
             case 'EditProperty':
-                edit_property($_POST['name'], $_POST['address'], $_POST['oname'], $_POST['oaddress']);
+                edit_property($_POST['name'], $_POST['address'], $_POST['oname'], $_POST['oaddress'], $_SESSION['userid']);
                 exit();
             case 'GetProperties':
                 $sproperties = get_properties($_SESSION['userid']);
+                $properties = array();
+                $i = 0;
+                // create array of the rows of the query result
+                while($row = mysqli_fetch_assoc($sproperties)){
+                    $properties[$i++] = $row;
+                }
+                // encode this array as json to be parsed in mainpage
+                $places = json_encode($properties);
+                // send this json to the mainpage
+                echo $places;
+                exit();
+            case 'NewRecipient':
+                new_recipient($_POST['name'], $_POST['pnumber'], $_POST['email'], $_SESSION['userid']);
+                exit();
+            case 'EditRecipient':
+                edit_recipient($_POST['name'], $_POST['pnumber'], $_POST['email'], $_POST['oname'], $_POST['onumber'], $_POST['oemail'], $_SESSION['userid']);
+                exit();
+            case 'GetRecipients':
+                $srecipients = get_recipients($_SESSION['userid']);
+                $recipients = array();
+                $i = 0;
+                while($row = mysqli_fetch_assoc($srecipients)){
+                    $recipients[$i++] = $row;
+                }
+                $people = json_encode($recipients);
+                echo $people;
+                exit();
+            case 'GetRecipientProperties':
+                // just a test for now with simpler parameters
+                $sproperties = get_recipient_properties($_SESSION['userid'], $_POST['name']);
                 $properties = array();
                 $i = 0;
                 while($row = mysqli_fetch_assoc($sproperties)){
@@ -89,11 +119,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'){
                 }
                 $places = json_encode($properties);
                 echo $places;
-                break;
-            case 'NewRecipient':
-                new_recipient($_POST['name'], $_POST['pnumber'], $_POST['email'], $_SESSION['userid']);
                 exit();
-            case 'NotificationStatus':
+            case 'ChangeNotificationStatus':
+                set_notification_status($_POST['name'], $_POST['pid'], $_POST['status']);
                 exit();
         }
     }

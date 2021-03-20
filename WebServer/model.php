@@ -21,6 +21,7 @@ function check_existence($email) {
 
     $sql = "SELECT Email FROM Account WHERE Email='$email'";
     $result = mysqli_query($conn, $sql);
+    // if there is a result, the number of rows will be greater than zero
     if (mysqli_num_rows($result) > 0) {
         return true;
     }
@@ -76,7 +77,7 @@ function get_user_id($email) {
 
 # TODO - method to change user's password
 
-# TODO - method to add a new property
+# TODO - figure out latitude and longitude properly
 function new_property($name, $address, $aid, $lat, $lon) {
     global $conn;
 
@@ -87,10 +88,36 @@ function new_property($name, $address, $aid, $lat, $lon) {
     else {
         error_log("Error: ").$sql.("<br>").$conn->error;
     }
+
+    # TODO - this probably won't work with an empty account with no properties. should insert some checks for that.
+    // create recipient property entries for each existing recipient with new property
+    $sproperties = get_property_id($aid);
+    $properties = array();
+    $i = 0;
+    while($row = $sproperties->fetch_object()){
+        // need to convert to a number value php recognizes to use in function
+        $pid = intval(print_r($row->PropertyID, true));
+        $properties[$i++] = $pid;
+    }
+    $totalp = sizeof($properties);
+    $srecipients= get_recipient_names($aid);
+    $recipients = array();
+    $i = 0;
+    while($row = $srecipients->fetch_object()){
+        // need to convert to a string value php recognizes to use in function
+        $uname = print_r($row->Name, true);
+        $recipients[$i++] = $uname;
+    }
+    $totalr = sizeof($recipients);
+    for ($i = 0; $i < $totalr; $i++) {
+        $rname = $recipients[$i];
+        for ($j = 0; $j < $totalp; $j++) {
+            $pid = $properties[$j];
+            new_recipient_property($aid, $rname, $pid);
+        }
+    }
 }
 
-# TODO - method to add recipient properties into database
-# TODO - perhaps do this when creating property so each property has association with all recipients?
 
 function get_properties($userid) {
     global $conn;
@@ -101,11 +128,29 @@ function get_properties($userid) {
     return $result;
 }
 
-# TODO - method to edit a property's details
-function edit_property($name, $address, $oname, $oaddress) {
+
+function get_property_id($userid) {
     global $conn;
 
-    $sql = "UPDATE Property SET `Property Name`='$name', Address='$address' WHERE `Property Name`='$oname' AND Address='$oaddress'";
+    $sql = "SELECT PropertyID FROM Property WHERE AccountID=$userid ORDER BY PropertyID DESC LIMIT 1";
+    $result = mysqli_query($conn, $sql);
+
+    return $result;
+}
+
+function get_all_property_ids($userid) {
+    global $conn;
+
+    $sql = "SELECT PropertyID FROM Property WHERE AccountID=$userid";
+    $result = mysqli_query($conn, $sql);
+
+    return $result;
+}
+
+function edit_property($name, $address, $oname, $oaddress, $userid) {
+    global $conn;
+
+    $sql = "UPDATE Property SET `Property Name`='$name', Address='$address' WHERE `Property Name`='$oname' AND Address='$oaddress' AND AccountID=$userid";
     $result = mysqli_query($conn, $sql);
 
     return $result;
@@ -122,28 +167,82 @@ function new_recipient($name, $phonenumber, $email, $id) {
     else {
         error_log("Error: ").$sql.("<br>").$conn->error;
     }
+
+    // create recipient property entries for all existing properties and new recipient
+    $sproperties = get_all_property_ids($id);
+    $properties = array();
+    $i = 0;
+    while($row = $sproperties->fetch_object()){
+        $pid = intval(print_r($row->PropertyID, true));
+        $properties[$i++] = $pid;
+    }
+    $totalp = sizeof($properties);
+
+    for ($i = 0; $i < $totalp; $i++) {
+        $pid = $properties[$i];
+        new_recipient_property($id, $name, $pid);
+    }
+
+}
+
+function edit_recipient($name, $number, $email, $oname, $onumber, $oemail, $userid) {
+    global $conn;
+
+    $sql = "UPDATE Recipients SET `Recipient Name`='$name', Phone=$number, `Contact Email`='$email' WHERE `Recipient Name`='$oname' AND Phone=$onumber AND `Contact Email`='$oemail' AND AccountID=$userid";
+    $result = mysqli_query($conn, $sql);
+
+    return $result;
 }
 
 function get_recipients($userid) {
     global $conn;
 
-    $sql = "SELECT Name, Phone, Contact Email FROM Recipients WHERE AccountID=$userid";
+    $sql = "SELECT Name, Phone, `Contact Email` FROM Recipients WHERE AccountID=$userid";
     $result = mysqli_query($conn, $sql);
 
     return $result;
 }
 
-function get_recipient_properties($userid) {
+function get_recipient_names($userid) {
     global $conn;
 
-    $sql = "SELECT Name, Active FROM Recipient Properties WHERE AccountID=$userid";
+    $sql = "SELECT Name FROM Recipients WHERE AccountID=$userid";
     $result = mysqli_query($conn, $sql);
 
     return $result;
 }
 
-# TODO - method to edit a recipient's details
-# TODO - method to change if user receives text message
-# TODO - method to change if user receives email
+function new_recipient_property($aid, $name, $pid) {
+    global $conn;
+
+    $sql = "INSERT INTO `Recipient Properties` VALUES ($aid, '$name', $pid, 0)";
+    $result = mysqli_query($conn, $sql);
+
+    return $result;
+}
+
+function get_recipient_properties($userid, $name) {
+    global $conn;
+
+    $sql = "SELECT `Recipient Properties`.Name, Property.`Property Name`, `Recipient Properties`.Active, `Recipient Properties`.PropertyID FROM `Recipient Properties` INNER JOIN Property ON `Recipient Properties`.AccountID=Property.AccountID AND `Recipient Properties`.AccountID=$userid";
+    $result = mysqli_query($conn, $sql);
+
+    return $result;
+}
+
+function set_notification_status($name, $pid, $status) {
+    // status 0: both off
+    // status 1: sms only
+    // status 2: email only
+    // status 3: both on
+
+    global $conn;
+
+    $sql = "UPDATE `Recipient Properties` SET Active=$status WHERE PropertyID=$pid AND Name='$name'";
+    $result = mysqli_query($conn, $sql);
+
+    return $result;
+}
+
 
 ?>
