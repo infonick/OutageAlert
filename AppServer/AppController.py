@@ -33,7 +33,6 @@ import json         # Provides encoding and decoding functions for JSON strings/
 
 
 
-
 # NEW POWER OUTAGES ---------------------------------------------------------------------
 # Save new outage data to the database 
 
@@ -46,6 +45,7 @@ if err != None:
 
 # Generate the messages we will send to users for the new outages
 ListOfOutageMessages = AppModelOutageMessages.GenerateNewOutageMessages(newOutages)
+# print("ListOfOutageMessages (new):",ListOfOutageMessages)
 
 
 # TODO: Find a more efficient way to retrieve a more concise list of relevant properties from the DB
@@ -63,7 +63,7 @@ propOutageList = []
 
 for property in allProperties:
     for outage in newOutages:
-        if AppModelPolygonPointFunctions.PointInPolygon(property['latitude'], property['longitude'], outage['polygon']):
+        if AppModelPolygonPointFunctions.PointInPolygon(property['Latitude'], property['Longitude'], outage['polygon']):
             propOutageList.append({'outageID': outage['id'], 'propertyID': property['PropertyID']})
             break
     # TODO: In the future, it may be a good idea to also check for properties that were added after an outage had started.
@@ -91,9 +91,9 @@ for existingOutage in existingOutages:
 
     while left <= right:                                    # While the left and right numbers still provide a search option
         attempt = (left + right) // 2                       # Next index to attempt
-        if target == dbOutagesCopy[attempt]['id']:          # If the ID number matches
+        if target == dbOutagesCopy[attempt]['OutageID']:          # If the ID number matches
             dbOutageInfo = dbOutagesCopy[attempt]['json']    
-            updatedOutageInfo = existingOutage[attempt]['json']
+            updatedOutageInfo = existingOutage
             for key in updatedOutageInfo:                           # Search for values that are not the same between the two instances of the outage
                 if updatedOutageInfo[key] != dbOutageInfo[key]:
                     updateOutages.append((target, dbOutageInfo.copy(),updatedOutageInfo.copy())) # If a difference is found, add it to the update list
@@ -101,7 +101,7 @@ for existingOutage in existingOutages:
                     break
             break
             
-        elif target < dbOutagesCopy[attempt]['id']:         # If the target ID number is less than the attempt index ID number
+        elif target < dbOutagesCopy[attempt]['OutageID']:         # If the target ID number is less than the attempt index ID number
             right = attempt - 1                             # Move the right index marker for the binary search
 
         else:                                               # If the target ID number is greater than the attempt index ID number
@@ -127,6 +127,7 @@ if err != None:
 
 # Generate the messages we will send to users for the outage updates and add that to the list of outage messages.
 ListOfOutageMessages += AppModelOutageMessages.GenerateOutageUpdateMessages(updateOutages)
+# print("ListOfOutageMessages (upd):",ListOfOutageMessages)
 
 # For any outages that have ended, disable the property-outage record in the DB
 err = AppModelGetOutages.DeactivateOutages(existingOutages)
@@ -147,9 +148,12 @@ if err != None:
     # TODO: There was a problem retrieving info from the database. Handle this error                                             <----
     print("ERROR RETREIVING OutageUsersByPhone!")
 
+# print(f"OutageUsersByEmai: {OutageUsersByEmail}")
 messages = AppModelSESMail.createEmailMessages(ListOfOutageMessages, OutageUsersByEmail)
 
+# print("Messages:",messages)
 AppModelSESMail.sendOutageEmailsToUsers(messages)
+print("SENT!")
 
 
 
@@ -169,7 +173,8 @@ AppModelSESMail.sendOutageEmailsToUsers(messages)
 
 # TODO: Unit, Component, and System testing
 # TODO: Reactivate property-outages in the DB where power has been lost again (use UpdatePropertyOutages in AppModelDB.py) (LOW PRIORITY)
-
+# TODO: search for properties that have been added since a power outage started and give them messages??? Has this been done?
+# TODO: Find a more reliable way to deactivate outages from the database. it appears restored outages can just dissappear!
 
 
 # OLD CODE ------------------------------------------------------------------------------

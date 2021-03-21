@@ -21,7 +21,8 @@ def ShapelyPolygon (googleMapsPloygon):
 
 
 def PointInPolygon (latitude, longitude, shapelyPolygon):
-    return (shapelyPolygon.contains(Point(longitude, latitude)))
+    thePoly = ShapelyPolygon(shapelyPolygon)
+    return (thePoly.contains(Point(longitude, latitude)))
 
 
 

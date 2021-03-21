@@ -21,20 +21,20 @@ import AppTimeLib                      # Custom date and time related functions 
 mydb = ''
 mycursor = ''
 verbose = False #used for verbose output to the terminal for testing purposes. Change to 'True' to see output.
+defaultDB = 'TestDB'
 
 
-
-def OpenDBConnection():
+def OpenDBConnection(dbname = defaultDB):
     """Opens a new connection to the MySQL Database"""
 
     global mydb
     global mycursor
 
     mydb = mysql.connector.connect(
-    host="localhost",
-    user="OutageAlert",
-    password="VqD4fDBJtt40iwFP",
-    database="TestDB"
+    host = "localhost",
+    user = "OutageAlert",
+    password = "VqD4fDBJtt40iwFP",
+    database = dbname
     )
     
     mydb.autocommit = False # Prevent SQL executions from automatically committing. Allows for a rollback if something goes wrong.
@@ -73,12 +73,16 @@ def GetOutageList(values):
 
     myresult = []
     err = None
+
+    if len(values) == 0:
+        return (myresult, err)
     
 
     try:
         OpenDBConnection()
         
         sql = "SELECT * FROM Outage WHERE OutageID IN " + str(tuple(values)) + " ORDER BY OutageID ASC;"
+
         # "str(tuple(values))" is a tuple of id numbers, created from the supplied list. 
         # This is the format that MySQL needs in order to process process the SELECT statement in one request. 
 
@@ -121,7 +125,7 @@ def SaveNewOutages(outageList, jsonTime):
         OpenDBConnection()
 
         # SQL INSERT command
-        sql = "INSERT INTO Outage (OutageID, Json, OutageTime, `Json Time`, `Outage Status`) VALUES (%s, %s, %s, %s, %s);"
+        sql = "INSERT INTO Outage (OutageID, Json, `Outage Time`, `Json Time`, `Outage Status`) VALUES (%s, %s, %s, %s, %s);"
 
         # For each new outage, insert a record for it into the database using the supplied values with the above SQL command
         for outage in outageList:
@@ -285,7 +289,7 @@ def UpdatePropertyOutages(outageList, isOutageActive):
         OpenDBConnection()
 
         # SQL INSERT command
-        sql = "UPDATE `Property Outage` SET Active = %s WHERE OutageID = %s);"
+        sql = "UPDATE `Property Outage` SET Active = %s WHERE OutageID = %s;"
 
         # For each new outage, insert a record for it into the database using the supplied values with the above SQL command
         for outage in outageList:
@@ -327,12 +331,12 @@ def GetOutageUsersByEmail():
     try:
         OpenDBConnection()
         
-        sql =  "SELECT Property.PropertyID, Property.`Property Name`, Property.Address, Recipients.Name, Recipients.`Contact Email` "
+        sql =  "SELECT Property.PropertyID, Property.`Property Name`, Property.Address, Recipients.Name, Recipients.`Contact Email`, `Property Outage`.OutageID "
         sql += "FROM (((`Property Outage` INNER JOIN Property ON `Property Outage`.PropertyID = Property.PropertyID) "
         sql += "INNER JOIN `Recipient Properties` ON Property.PropertyID = `Recipient Properties`.PropertyID) "
         sql += "INNER JOIN Recipients ON Recipients.Name = `Recipient Properties`.Name AND Recipients.AccountID = `Recipient Properties`.AccountID) "
-        sql += "WHERE `Property Outage`.Active = True AND Recipients.Email IS NOT NULL "
-        sql += "ORDER BY Recipients.Email ASC, Recipients.Name ASC;"
+        sql += "WHERE `Property Outage`.Active = True AND Recipients.`Contact Email` IS NOT NULL "
+        sql += "ORDER BY Recipients.`Contact Email` ASC, Recipients.Name ASC;"
         
         # Execute the SQL command
         mycursor.execute(sql) 

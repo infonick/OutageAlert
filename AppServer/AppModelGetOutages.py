@@ -102,19 +102,22 @@ def SortOutages(outages):
     outageIDList = []
     for outage in outages:
         outageIDList.append(outage['id'])
+    
+    while len(outageIDList) < 2: # SQL cannot handle a tuple of less than 2 elements
+        outageIDList.append(0)
 
     # Retrieve existing outages from the database
     (dbOutages, err) = AppModelDB.GetOutageList(outageIDList)
 
     if err != None:
         # TODO: There was a problem retrieving the existing outages from the database. Handle this error                               <----
-        print("ERROR RETRIEVING EXISTING OUTAGES FROM DATABASE!")
+        print(f"ERROR RETRIEVING EXISTING OUTAGES FROM DATABASE!\n{err}")
 
     else:
         # Make a list of outage id's that already exist in the database
         outageListRetrieved = []
         for outage in dbOutages:
-            outageListRetrieved.append(outage['id'])
+            outageListRetrieved.append(outage['OutageID'])
 
         # Sort JSON outages into two lists - new and existing outages
         newOutages = []
@@ -131,12 +134,14 @@ def SortOutages(outages):
 
 
 
-# TODO: Deactivate PropertyOutage records in the DB where power has been restored to a property (use UpdatePropertyOutages in AppModelDB.py)
+# Deactivate PropertyOutage records in the DB where power has been restored to a property (use UpdatePropertyOutages in AppModelDB.py)
 def DeactivateOutages(existingOutages):
     outagesThatHaveEnded = []
+    currentTime = AppTimeLib.GetCurrentUTCTime()
     for existingOutage in existingOutages:
         if existingOutage['dateOn'] != None:
-            outagesThatHaveEnded.append(existingOutage.copy())
+            if AppTimeLib.DateTimeFromJSToPython(existingOutage['dateOn']) <= currentTime: # BCHydro can put a future date/time in the 'dateOn' attribute for an estimated time on. 
+                outagesThatHaveEnded.append(existingOutage.copy())
 
     err = None
 

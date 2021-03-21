@@ -30,28 +30,47 @@ def GenerateOutageMessages(existingOutageInfo, updatedOutageInfo):
 
         if key == 'dateOn':
             priority = 1
-            dateTimeOn = AppTimeLib.DateTimeFromJSToPython(newValue)
-            dateTimeOn = AppTimeLib.PythonChangeTimeZone(dateTimeOn, 'America/Vancouver')
-            if oldValue == None and newValue != None:
-                outageMessages.append((key, priority, "Power restored on " + datetime.datetime.strftime(dateTimeOn, '%Y-%b-%d %I:%M:%S %p %Z')))
-            elif oldValue != None and newValue == None:
-                outageMessages.append((key, priority, "Power was restored, but has been lost again."))
-            elif newValue != None:
-                outageMessages.append((key, priority, "Power restoration time was updated to " + datetime.datetime.strftime(dateTimeOn, '%Y-%b-%d %I:%M:%S %p %Z')))
-            break
+
+            futureDateOn = False
+
+            if newValue != None:
+                dateTimeOn = AppTimeLib.DateTimeFromJSToPython(newValue)
+
+                if dateTimeOn > AppTimeLib.GetCurrentUTCTime():
+                    futureDateOn = True
+
+                dateTimeOn = AppTimeLib.PythonChangeTimeZone(dateTimeOn, 'America/Vancouver')
+
+            if futureDateOn: # BCHydro will fill in the 'dateOn' attribute with a date/time in the future if they expect power to be on. Have to handle this case.
+                if oldValue == None:
+                    outageMessages.append((key, priority, "Power is expected to be restored on " + datetime.datetime.strftime(dateTimeOn, '%Y-%b-%d %I:%M:%S %p %Z')))
+                elif oldValue != None:
+                    outageMessages.append((key, priority, "Power restoration estimate was updated to " + datetime.datetime.strftime(dateTimeOn, '%Y-%b-%d %I:%M:%S %p %Z')))
+                continue
+
+            else:
+                if oldValue == None and newValue != None:
+                    outageMessages.append((key, priority, "Power restored on " + datetime.datetime.strftime(dateTimeOn, '%Y-%b-%d %I:%M:%S %p %Z')))
+                elif oldValue != None and newValue == None:
+                    outageMessages.append((key, priority, "Power was perviously restored, but has been lost again."))
+                elif newValue != None:
+                    outageMessages.append((key, priority, "Power restoration time was updated to " + datetime.datetime.strftime(dateTimeOn, '%Y-%b-%d %I:%M:%S %p %Z')))
+                continue
 
 
         elif key == 'crewEta':
             priority = 2
-            dateTimeCrewETA = AppTimeLib.DateTimeFromJSToPython(newValue)
-            dateTimeCrewETA = AppTimeLib.PythonChangeTimeZone(dateTimeCrewETA, 'America/Vancouver')
+            if newValue != None:
+                dateTimeCrewETA = AppTimeLib.DateTimeFromJSToPython(newValue)
+                dateTimeCrewETA = AppTimeLib.PythonChangeTimeZone(dateTimeCrewETA, 'America/Vancouver')
+
             if oldValue == None and newValue != None:
                 outageMessages.append((key, priority, "Power restoration crew ETA: " + datetime.datetime.strftime(dateTimeCrewETA, '%Y-%b-%d %I:%M:%S %p %Z')))
             elif oldValue != None and newValue == None:
                 outageMessages.append((key, priority, "Power crew ETA has been cancelled."))
             elif newValue != None:
                 outageMessages.append((key, priority, "Power restoration crew ETA updated to: " + datetime.datetime.strftime(dateTimeCrewETA, '%Y-%b-%d %I:%M:%S %p %Z')))
-            break
+            continue
 
 
         elif key == 'crewStatusDescription':
@@ -60,7 +79,7 @@ def GenerateOutageMessages(existingOutageInfo, updatedOutageInfo):
                 outageMessages.append((key, priority, "Power restoration crew status: " + newValue))
             elif newValue != None:
                 outageMessages.append((key, priority, "Power restoration crew status updated from \'" + oldValue + "\' to \'" + newValue + "\'."))
-            break
+            continue
 
 
         elif key == 'cause':
@@ -69,7 +88,7 @@ def GenerateOutageMessages(existingOutageInfo, updatedOutageInfo):
                 outageMessages.append((key, priority, "Cause of power outage: " + newValue))
             elif newValue != None:
                 outageMessages.append((key, priority, "Cause of power outage updated from \'" + oldValue + "\' to \'" + newValue + "\'."))
-            break
+            continue
 
 
         elif key == 'dateOff':
@@ -80,41 +99,41 @@ def GenerateOutageMessages(existingOutageInfo, updatedOutageInfo):
                 outageMessages.append((key, priority, "Power outage began on " + datetime.datetime.strftime(dateTimeOff, '%Y-%b-%d %I:%M:%S %p %Z')))
             elif newValue != None:
                 outageMessages.append((key, priority, "Power outage start time was updated to " + datetime.datetime.strftime(dateTimeOff, '%Y-%b-%d %I:%M:%S %p %Z')))
-            break
+            continue
 
 
 
         # OTHER DICTIONARY 'KEY' OPTIONS, saved in case we want to use them.
         # elif key == 'polygon':
         #     # need to check for newly affected customers, or newly restored customers if the polygon changes                 <----
-        #     break
+        #     continue
         # elif key == 'lastUpdated':
         #     # What do we do with this part? anything?                                                                        <----
-        #     break
+        #     continue
         # elif key == 'numCustomersOut':
-        #     break
+        #     continue
         # elif key == 'id':
-        #     break
+        #     continue
         # elif key == 'gisId':
-        #     break
+        #     continue
         # elif key == 'regionId':
-        #     break
+        #     continue
         # elif key == 'municipality':
-        #     break
+        #     continue
         # elif key == 'area':
-        #     break
+        #     continue
         # elif key == 'regionName':
-        #     break
+        #     continue
         # elif key == 'crewEtr':
-        #     break
+        #     continue
         # elif key == 'showEta':
-        #     break
+        #     continue
         # elif key == 'showEtr':
-        #     break
+        #     continue
         # elif key == 'latitude':
-        #     break
+        #     continue
         # elif key == 'longitude':
-        #     break
+        #     continue
     
     return outageMessages 
 
@@ -137,7 +156,7 @@ def GenerateNewOutageMessages(outages):
 
 
         for i in range(len(outages)):
-            newOutageAlerts.append((outages[i]['id'], GenerateOutageMessages(blankOutage, outages))) # Create a tuple consisting of the outage ID number, and all the related update messages for that outage ID
+            newOutageAlerts.append((outages[i]['id'], GenerateOutageMessages(blankOutage, outages[i]))) # Create a tuple consisting of the outage ID number, and all the related update messages for that outage ID
 
     return newOutageAlerts
 
@@ -158,7 +177,7 @@ def GenerateOutageUpdateMessages(udOutages):
         for i in range(len(udOutages)):
             (outageID, oldOutageInfo, updatedOutageInfo) = udOutages[i] # Get the two outage dictionaries
             
-            for key in oldOutageInfo.keys():                     # For each key in the dictionary...
+            for key in list(oldOutageInfo.keys()):                     # For each key in the dictionary...
                 if updatedOutageInfo[key] == oldOutageInfo[key]: # If the key's values are the same...
                     updatedOutageInfo.pop(key)                   # Remove the key & value from these dictionaries
                     oldOutageInfo.pop(key)

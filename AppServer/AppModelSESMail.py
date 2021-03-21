@@ -10,13 +10,16 @@
 
 import smtplib  # SMTP email library
 import ssl      # SSL/TLS security
+from email.message import EmailMessage
+
+from creds import *
 
 
 # Information for server connection 
 sesServerAddress = 'email-smtp.ca-central-1.amazonaws.com'
 sesPort = 465               # 465 is for secure connections like SSL/TLS
-sesUsername = ''
-sesPassword = ''
+# sesUsername = ''
+# sesPassword = ''
 
 # Generic email information
 emailSentFromAddress = "infonick@gmail.com"
@@ -24,7 +27,9 @@ emailSentFromAddress = "infonick@gmail.com"
 
 def sendOutageEmailsToUsers(messages):
     # Create a secure SSL context
-    context = ssl.create_default_context()
+    # context = ssl.create_default_context()
+    context  = ssl.SSLContext(ssl.PROTOCOL_TLS)
+
 
     try:
         # 'with' statement will cause the connection to cease when the block exits.
@@ -33,7 +38,15 @@ def sendOutageEmailsToUsers(messages):
 
             for i in range(len(messages)):
                 try:
-                    server.sendmail(emailSentFromAddress, messages[i]['recipientEmail'], messages[i]['emailMessage'])
+                    msg = EmailMessage()
+                    msg.set_content(messages[i]['emailMessage'])
+                    msg['Subject'] = f"OutageAlert Message"
+                    msg['From'] = emailSentFromAddress
+                    msg['To'] = messages[i]['recipientEmail']
+
+                    server.send_message(msg)
+                    # server.sendmail(emailSentFromAddress, messages[i]['recipientEmail'], messages[i]['emailMessage'], )
+                    print(f"Sent email to {messages[i]['recipientEmail']}: {messages[i]['emailMessage']}")
 
                 except (smtplib.SMTPSenderRefused,
                         smtplib.SMTPRecipientsRefused,
@@ -70,24 +83,34 @@ def createEmailMessages(ListOfOutageMessages, OutageUsersByEmail):
     # Reference: OutageUsersByEmail[i][key]     where    key = 'OutageID' 'PropertyID', 'Property Name', 'Address', 'Name', 'Contact Email' 
     
     messages = []
+    i = 0
 
-    for i in range(len(OutageUsersByEmail)):
-        newMessage  = f"Hello {OutageUsersByEmail[i]['Name']},\n"
-        newMessage += f"A power outage has been detected. A listing of updates follows:\n"
-        newMessage += f"---------------------------------------------------------------\n"
-        newMessage += f"{OutageUsersByEmail[i]['Property Name']}: \n"
-        newMessages += getMessagesFromList(ListOfOutageMessages, {OutageUsersByEmail[i]['OutageID'])
-        newMessage += f"\n---------------------------------------------------------------"
+    while (i < len(OutageUsersByEmail)) and (len(ListOfOutageMessages) > 0) and (len(OutageUsersByEmail) > 0):
 
-        while (OutageUsersByEmail[i]['Name'] == OutageUsersByEmail[i+1]['Name']) and (OutageUsersByEmail[i]['Contact Email'] == OutageUsersByEmail[i+1]['Contact Email']):
-            i += 1
-            newMessage += f"{OutageUsersByEmail[i]['Property Name']}: \n"
-            newMessages += getMessagesFromList(ListOfOutageMessages, {OutageUsersByEmail[i]['OutageID'])
-            newMessage += f"\n---------------------------------------------------------------"
+        if not checkUserHasOutageInList(ListOfOutageMessages, OutageUsersByEmail[i]['OutageID']):
+            continue
+
+        newMessage  = f"Hello {OutageUsersByEmail[i]['Name']},\r\n"
+        newMessage += f"A power outage has been detected. A listing of updates follows:\r\n"
+        newMessage += f"---------------------------------------------------------------\r\n"
+        newMessage += f"{OutageUsersByEmail[i]['Property Name']}: \r\n"
+        newMessage += getMessagesFromList(ListOfOutageMessages, OutageUsersByEmail[i]['OutageID'])
+        newMessage += f"\r\n---------------------------------------------------------------\r\n"
+
+
+        while (i+1 < len(OutageUsersByEmail)) and (OutageUsersByEmail[i]['Name'] == OutageUsersByEmail[i+1]['Name']) and (OutageUsersByEmail[i]['Contact Email'] == OutageUsersByEmail[i+1]['Contact Email']):
+                i += 1
+                if not checkUserHasOutageInList(ListOfOutageMessages, OutageUsersByEmail[i]['OutageID']):
+                    continue
+                newMessage += f"{OutageUsersByEmail[i]['Property Name']}: \r\n"
+                newMessage += getMessagesFromList(ListOfOutageMessages, OutageUsersByEmail[i]['OutageID'])
+                newMessage += f"\r\n---------------------------------------------------------------\r\n"
         
         messages.append(   {'recipientEmail': OutageUsersByEmail[i]['Contact Email'], 
                             'emailMessage': newMessage
                             })
+       
+        i += 1
 
     return messages
 
@@ -100,6 +123,16 @@ def getMessagesFromList(ListOfOutageMessages, OutageID):
     for (OutageIDNumber, msgList) in ListOfOutageMessages:
         if OutageIDNumber == OutageID:
             for (key, priority, msg) in msgList:
-                outageMessages += f"  - {msg}\n"
+                outageMessages += f"  - {msg}\r\n"
 
-    return outageMessages             
+    return outageMessages            
+
+
+
+def checkUserHasOutageInList(ListOfOutageMessages, OutageID):
+    
+    for (OutageIDNumber, _) in ListOfOutageMessages:
+        if OutageIDNumber == OutageID:
+            return True
+
+    return False    
