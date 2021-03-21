@@ -87,7 +87,8 @@ def createEmailMessages(ListOfOutageMessages, OutageUsersByEmail):
 
     while (i < len(OutageUsersByEmail)) and (len(ListOfOutageMessages) > 0) and (len(OutageUsersByEmail) > 0):
 
-        if not checkUserHasOutageInList(ListOfOutageMessages, OutageUsersByEmail[i]['OutageID']):
+        if checkUserHasNoOutageInList(ListOfOutageMessages, OutageUsersByEmail[i]['OutageID']):
+            i += 1
             continue
 
         newMessage  = f"Hello {OutageUsersByEmail[i]['Name']},\r\n"
@@ -100,7 +101,8 @@ def createEmailMessages(ListOfOutageMessages, OutageUsersByEmail):
 
         while (i+1 < len(OutageUsersByEmail)) and (OutageUsersByEmail[i]['Name'] == OutageUsersByEmail[i+1]['Name']) and (OutageUsersByEmail[i]['Contact Email'] == OutageUsersByEmail[i+1]['Contact Email']):
                 i += 1
-                if not checkUserHasOutageInList(ListOfOutageMessages, OutageUsersByEmail[i]['OutageID']):
+                if checkUserHasNoOutageInList(ListOfOutageMessages, OutageUsersByEmail[i]['OutageID']):
+                    # i += 1
                     continue
                 newMessage += f"{OutageUsersByEmail[i]['Property Name']}: \r\n"
                 newMessage += getMessagesFromList(ListOfOutageMessages, OutageUsersByEmail[i]['OutageID'])
@@ -129,10 +131,10 @@ def getMessagesFromList(ListOfOutageMessages, OutageID):
 
 
 
-def checkUserHasOutageInList(ListOfOutageMessages, OutageID):
+def checkUserHasNoOutageInList(ListOfOutageMessages, OutageID):
     
     for (OutageIDNumber, _) in ListOfOutageMessages:
         if OutageIDNumber == OutageID:
-            return True
+            return False
 
-    return False    
+    return True    

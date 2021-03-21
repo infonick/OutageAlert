@@ -139,6 +139,22 @@ def GenerateOutageMessages(existingOutageInfo, updatedOutageInfo):
 
 
 
+# CANCELLED POWER OUTAGES ---------------------------------------------------------------------
+
+def GenerateCancelledOutageMessages(outageIDList):
+    # Returns a list of outage tuples consisting of the outage ID number and a list of message tuples
+    # [ (OutageIDNumber, [ ('key', int_priority, "message"), ('key', int_priority, "message"), ... ]),  ... ]
+
+    newOutageAlerts = []    # This is a list of tuples consisting of the outage ID number, and all the related update messages for that outage ID
+
+    if len(outageIDList) > 0:
+        for id in outageIDList:
+            newOutageAlerts.append(  (id, [('Cancellation', 0, "This power outage has now been cancelled.")])  ) # Create a tuple consisting of the outage ID number, and all the related update messages for that outage ID
+
+    return newOutageAlerts
+
+
+
 
 # NEW POWER OUTAGES ---------------------------------------------------------------------
 

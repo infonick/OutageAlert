@@ -97,11 +97,21 @@ def RetrieveBCHydro ():
 
 def SortOutages(outages):
     # Sort outages into new and existing categories -----------------------------------------
+    newOutages = []
+    existingOutages = []
+    (activeDBOutages, err) = AppModelDB.GetActiveOutageIDList()
+    activeDBOutages = set(activeDBOutages)
 
-    # Make a list of outage id's from the JSON file
+    if err != None:
+        # TODO: There was a problem retrieving a list of active outages from the database. Handle this error                               <----
+        print(f"ERROR RETRIEVING EXISTING OUTAGES FROM DATABASE!\n{err}")
+
+    # Make a list of outage id's from the JSON file, and remove outage id's from the set of activeDBOutage ID numbers
     outageIDList = []
     for outage in outages:
         outageIDList.append(outage['id'])
+        if outage['id'] in activeDBOutages:
+            activeDBOutages.remove(outage['id'])
     
     while len(outageIDList) < 2: # SQL cannot handle a tuple of less than 2 elements
         outageIDList.append(0)
@@ -120,28 +130,32 @@ def SortOutages(outages):
             outageListRetrieved.append(outage['OutageID'])
 
         # Sort JSON outages into two lists - new and existing outages
-        newOutages = []
-        existingOutages = []
 
         for outage in outages:
             if outage['id'] in outageListRetrieved: # If the outage already exists in the database
                 existingOutages.append(outage.copy()) # Add it to the list of existing outages
             else:
                 newOutages.append(outage.copy()) # Otherwise add it to a list of newly discovered outages
-
-    return (newOutages, existingOutages, dbOutages)
-
+        
 
 
+    return (newOutages, existingOutages, dbOutages, activeDBOutages)
 
-# Deactivate PropertyOutage records in the DB where power has been restored to a property (use UpdatePropertyOutages in AppModelDB.py)
-def DeactivateOutages(existingOutages):
+
+
+
+# Deactivate PropertyOutage and Outage records in the DB where power has been restored to a property (use UpdatePropertyOutages in AppModelDB.py)
+def DeactivateOutages(existingOutages, cancelledOutageIDSet):
     outagesThatHaveEnded = []
     currentTime = AppTimeLib.GetCurrentUTCTime()
+
     for existingOutage in existingOutages:
         if existingOutage['dateOn'] != None:
             if AppTimeLib.DateTimeFromJSToPython(existingOutage['dateOn']) <= currentTime: # BCHydro can put a future date/time in the 'dateOn' attribute for an estimated time on. 
                 outagesThatHaveEnded.append(existingOutage.copy())
+
+    for cancelledOutageID in cancelledOutageIDSet:
+        outagesThatHaveEnded.append({'id':cancelledOutageID})
 
     err = None
 
@@ -150,5 +164,11 @@ def DeactivateOutages(existingOutages):
         if err != None:
             # TODO: There was a problem updating the database. Handle this error                               <----
             print("AppModelGetOutages.DeactivateOutages(): ERROR Deactivating Outages IN DATABASE!")
+    
+    if len(cancelledOutageIDSet) > 0:
+        err = AppModelDB.CancelOutage(cancelledOutageIDSet)
+        if err != None:
+            # TODO: There was a problem cancelling outages in the database. Handle this error                               <----
+            print("AppModelGetOutages.CancelOutage(): ERROR Cancelling Outages IN DATABASE!")
 
     return err

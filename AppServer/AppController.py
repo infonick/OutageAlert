@@ -22,14 +22,20 @@ import datetime     # Provides datetime object functions
 import json         # Provides encoding and decoding functions for JSON strings/files
         
 
-
+verbose = True
 
 
 # Get a fresh list of outages and sort them into new/existing lists ---------------------
 
 (outages, currentTime) = AppModelGetOutages.RetrieveBCHydro()
 
-(newOutages, existingOutages, dbOutages) = AppModelGetOutages.SortOutages(outages)
+(newOutages, existingOutages, dbOutages, cancelledOutageIDSet) = AppModelGetOutages.SortOutages(outages)
+
+
+
+# CANCELLED POWER OUTAGES ---------------------------------------------------------------
+ListOfOutageMessages = AppModelOutageMessages.GenerateCancelledOutageMessages(cancelledOutageIDSet)
+if verbose: print("ListOfOutageMessages (cancelled):", ListOfOutageMessages)
 
 
 
@@ -44,8 +50,8 @@ if err != None:
     print(err)
 
 # Generate the messages we will send to users for the new outages
-ListOfOutageMessages = AppModelOutageMessages.GenerateNewOutageMessages(newOutages)
-# print("ListOfOutageMessages (new):",ListOfOutageMessages)
+ListOfOutageMessages += AppModelOutageMessages.GenerateNewOutageMessages(newOutages)
+if verbose: print("ListOfOutageMessages (new):", ListOfOutageMessages)
 
 
 # TODO: Find a more efficient way to retrieve a more concise list of relevant properties from the DB
@@ -127,13 +133,7 @@ if err != None:
 
 # Generate the messages we will send to users for the outage updates and add that to the list of outage messages.
 ListOfOutageMessages += AppModelOutageMessages.GenerateOutageUpdateMessages(updateOutages)
-# print("ListOfOutageMessages (upd):",ListOfOutageMessages)
-
-# For any outages that have ended, disable the property-outage record in the DB
-err = AppModelGetOutages.DeactivateOutages(existingOutages)
-if err != None:
-            # TODO: There was a problem updating the database. Handle this error (duplicate error handling also in AppModelGetOutages.DeactivateOutages())     <----
-            print("AppModelGetOutages.DeactivateOutages(): ERROR Deactivating Outages IN DATABASE!")
+if verbose:  print("ListOfOutageMessages (upd):",ListOfOutageMessages)
 
 
 
@@ -148,12 +148,22 @@ if err != None:
     # TODO: There was a problem retrieving info from the database. Handle this error                                             <----
     print("ERROR RETREIVING OutageUsersByPhone!")
 
-# print(f"OutageUsersByEmai: {OutageUsersByEmail}")
+if verbose:  print(f"OutageUsersByEmai: {OutageUsersByEmail}")
 messages = AppModelSESMail.createEmailMessages(ListOfOutageMessages, OutageUsersByEmail)
 
-# print("Messages:",messages)
+if verbose:  print("Messages:",messages)
 AppModelSESMail.sendOutageEmailsToUsers(messages)
 print("SENT!")
+
+
+
+# DEACTIVATE OUTAGES IN THE DB ---------------------------------------------------------------
+# For any outages that have ended, disable the property-outage record in the DB
+err = AppModelGetOutages.DeactivateOutages(existingOutages, cancelledOutageIDSet)
+if err != None:
+            # TODO: There was a problem updating the database. Handle this error (duplicate error handling also in AppModelGetOutages.DeactivateOutages())     <----
+            print("AppModelGetOutages.DeactivateOutages(): ERROR Deactivating Outages IN DATABASE!")
+
 
 
 

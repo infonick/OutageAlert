@@ -108,6 +108,48 @@ def GetOutageList(values):
 
 
 
+def GetActiveOutageIDList():
+    """
+    Retrieves all outage ID numbers from the database that are currently active.
+    
+    Input: none
+    Output: a tuple of two components: 
+        The first component is a list of outage numbers
+        The second component is an error message, if applicible.
+    """
+    global mydb
+    global mycursor
+
+    myresult = []
+    err = None  
+
+    try:
+        OpenDBConnection()
+        
+        sql = "SELECT OutageID FROM Outage WHERE `Outage Status` = 1 ORDER BY OutageID ASC;"
+
+        # Execute the SQL command
+        mycursor.execute(sql) 
+
+        # Retrieve all of the results
+        myresult = mycursor.fetchall() 
+
+        # Parse all json strings into dictionaries for easy handling in Python
+        for i in range(len(myresult)):
+            myresult[i] = myresult[i]['OutageID']
+
+
+    # If an exception occours while opening a DB connection or accessing the DB
+    except mysql.connector.Error as error :
+        err = f"Failed to retrieve outage list: {error}"
+
+    finally:
+        CloseDBConnection()
+
+    return (myresult, err)
+
+
+
 def SaveNewOutages(outageList, jsonTime):
     """
     Takes a list of new outage dictionaries and saves them to the database.
@@ -161,6 +203,8 @@ def UpdateOutage(outageUpdateList, jsonTime):
     
     err = None
     jsonTimeDB = AppTimeLib.DateTimeFromPythonToMySQL(jsonTime)
+    currentTime = AppTimeLib.GetCurrentUTCTime()
+
 
     try:
         OpenDBConnection()
@@ -171,10 +215,11 @@ def UpdateOutage(outageUpdateList, jsonTime):
         # For each updated outage, update the record for it in the database using the supplied values with the above SQL command
         for outage in outageUpdateList:
 
-            # Set the Outage Status to 1='True', unless the outage shows that power has been restored then set to 0='False'
+            # Set the Outage Status to 1='True', unless the outage shows that power has been restored then set to 0='False' and dateOn is not future-dated.
             outageStatus = 1
             if outage['dateOn'] != None:
-                outageStatus = 0
+                if AppTimeLib.DateTimeFromJSToPython(outage['dateOn']) <= currentTime:
+                    outageStatus = 0
             
             values = (json.dumps(outage), jsonTimeDB, outageStatus, outage['id'])
             mycursor.execute(sql, values)
@@ -192,6 +237,47 @@ def UpdateOutage(outageUpdateList, jsonTime):
         CloseDBConnection()
     
     return err
+
+
+
+def CancelOutage(outageIDCancelSet):
+    """
+    Takes a set of outages that are no longer being reported and cancells them in the database
+
+    Returns a string if any operation was unsuccessful.
+    If any operation is unsuccessful, then NO records are updated in the database.
+    """
+    global mydb
+    global mycursor
+    
+    err = None
+
+    try:
+        OpenDBConnection()
+
+        # SQL UPDATE command
+        sql = "UPDATE Outage SET `Outage Status` = 0 WHERE OutageID = %s;"
+
+        # For each updated outage, update the record for it in the database using the supplied values with the above SQL command
+        for id in outageIDCancelSet:
+
+            values = (id,)
+            mycursor.execute(sql, values)
+        
+        # If UPDATE commands were successful, permenantly commit the changes.
+        mydb.commit()
+    
+    # If an exception occours while opening a DB connection or accessing the DB
+    except mysql.connector.Error as error :
+        err = f"Failed to cancel outages in database - rollback: {error}"
+        # Database rollback because of exception - reverses all executed UPDATE commands so that no changes take effect.
+        mydb.rollback()
+
+    finally:
+        CloseDBConnection()
+    
+    return err
+
 
 
 
