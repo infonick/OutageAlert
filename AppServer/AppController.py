@@ -180,11 +180,13 @@ if err != None:
 # Rename AppModelRetrieveJSON.py to AppController.py and move non-controller functions (json functions,etc) to their own Model files.
 # Deactivate property-outages in the DB where power has been restored (use UpdatePropertyOutages in AppModelDB.py)
 # Send outage messages in ListOfOutageMessages to the users (use functions in AppModelSESMail.py to send emails; use GetOutageUsersByPhone() & GetOutageUsersByEmail() )
+# Find a more reliable way to deactivate outages from the database. it appears restored outages can just dissappear!
+# Unit, Component, and System testing
 
-# TODO: Unit, Component, and System testing
+
 # TODO: Reactivate property-outages in the DB where power has been lost again (use UpdatePropertyOutages in AppModelDB.py) (LOW PRIORITY)
-# TODO: search for properties that have been added since a power outage started and give them messages??? Has this been done?
-# TODO: Find a more reliable way to deactivate outages from the database. it appears restored outages can just dissappear!
+# TODO: Search for properties that have been added since a power outage started and give them messages??? Has this been done?
+# TODO: Implement sending sms messages
 
 
 # OLD CODE ------------------------------------------------------------------------------
