@@ -87,6 +87,7 @@ function new_property($name, $address, $aid, $lat, $lon) {
     }
     else {
         error_log("Error: ").$sql.("<br>").$conn->error;
+        echo $conn->error;
     }
 
     # TODO - this probably won't work with an empty account with no properties. should insert some checks for that.
@@ -147,10 +148,10 @@ function get_all_property_ids($userid) {
     return $result;
 }
 
-function edit_property($name, $address, $oname, $oaddress, $userid) {
+function edit_property($name, $address, $oname, $oaddress, $lat, $lon, $userid) {
     global $conn;
 
-    $sql = "UPDATE Property SET `Property Name`='$name', Address='$address' WHERE `Property Name`='$oname' AND Address='$oaddress' AND AccountID=$userid";
+    $sql = "UPDATE Property SET `Property Name`='$name', Address='$address', Latitude=$lat, Longitude=$lon WHERE `Property Name`='$oname' AND Address='$oaddress' AND AccountID=$userid";
     $result = mysqli_query($conn, $sql);
 
     return $result;
@@ -224,7 +225,7 @@ function new_recipient_property($aid, $name, $pid) {
 function get_recipient_properties($userid, $name) {
     global $conn;
 
-    $sql = "SELECT `Recipient Properties`.Name, Property.`Property Name`, `Recipient Properties`.Active, `Recipient Properties`.PropertyID FROM `Recipient Properties` INNER JOIN Property ON `Recipient Properties`.AccountID=Property.AccountID AND `Recipient Properties`.AccountID=$userid";
+    $sql = "SELECT `Recipient Properties`.Name, Property.`Property Name`, `Recipient Properties`.Active, `Recipient Properties`.PropertyID FROM `Recipient Properties`, Property WHERE `Recipient Properties`.PropertyID=Property.PropertyID AND `Recipient Properties`.AccountID=$userid AND `Recipient Properties`.Name='$name'";
     $result = mysqli_query($conn, $sql);
 
     return $result;

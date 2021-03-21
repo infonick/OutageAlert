@@ -75,10 +75,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'){
             case 'NewProperty':
                 // lat and long were just set at 150 to test
                 # TODO - get actual latitude and longitude
-                new_property($_POST['name'], $_POST['address'], $_SESSION['userid'], 150, 150);
+                new_property($_POST['name'], $_POST['address'], $_SESSION['userid'], $_POST['lat'], $_POST['lon']);
                 exit();
             case 'EditProperty':
-                edit_property($_POST['name'], $_POST['address'], $_POST['oname'], $_POST['oaddress'], $_SESSION['userid']);
+                edit_property($_POST['name'], $_POST['address'], $_POST['oname'], $_POST['oaddress'], $_POST['lat'], $_POST['lon'], $_SESSION['userid']);
                 exit();
             case 'GetProperties':
                 $sproperties = get_properties($_SESSION['userid']);

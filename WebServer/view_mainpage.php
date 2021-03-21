@@ -10,6 +10,22 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
     <!-- Bootstrap - Latest compiled JavaScript -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?libraries=places&callback=initAutocomplete&language=nl&output=json&key=AIzaSyD-bcVR4yqiiFJDknvl8RG6wu63KGNst00" async defer></script>
+    <style>
+        .pac-container {
+            background-color: #FFF;
+            z-index: 20;
+            position: fixed;
+            display: inline-block;
+            float: left;
+        }
+        .modal{
+            z-index: 20;
+        }
+        .modal-backdrop{
+            z-index: 10;
+        }
+    </style>
     <script>
         // hide the create account form on initial load (done using regular javascript to prevent flickering)
         // probably a better way to do this. still minor flickering. should look into that
@@ -163,12 +179,13 @@
             }
             $.post(controller,
                 {
-                    page: "MainPage", command: "NewProperty", name: name, address: address
+                    page: "MainPage", command: "NewProperty", name: name, address: address, lat: latitude, lon: longitude
                 },
                 function (result) {
                     $('#nproperty-success').toast({delay:1000});
                     $('#nproperty-success').toast('show');
                     loadProperties();
+                    loadRecipients();
                     setTimeout(function () {
                         $('#new-property').modal('hide');
                     }, 1000);
@@ -194,12 +211,13 @@
             }
             $.post(controller,
                 {
-                    page: "MainPage", command: "EditProperty", name: name, address: address, oname: originalName, oaddress: originalAddress
+                    page: "MainPage", command: "EditProperty", name: name, address: address, oname: originalName, oaddress: originalAddress, lat: latitude, lon: longitude
                 },
                 function (result) {
                     $('#eproperty-success').toast({delay:1000});
                     $('#eproperty-success').toast('show');
                     loadProperties();
+                    loadRecipients();
                     setTimeout(function () {
                         $('#new-property').modal('hide');
                     }, 1000);
@@ -481,6 +499,29 @@
             $('#edit-notification').show();
         }
 
+        var latitude = 0.0;
+        var longitude = 0.0;
+        //
+        function initAutocomplete() {
+            var addressinput = document.getElementById("address");
+            var eaddressinput = document.getElementById("eaddress");
+            var options = {
+                types: ['address'], // return address information only
+                componentRestrictions: {country: ['ca']} // restrict searches to canada
+            };
+            var autocomplete = new google.maps.places.Autocomplete(addressinput, options);
+            var eautocomplete = new google.maps.places.Autocomplete(eaddressinput, options);
+            google.maps.event.addListener(autocomplete, 'place_changed', function() {
+                var place = autocomplete.getPlace();
+                latitude = place.geometry.location.lat(); // get latitude of address
+                longitude = place.geometry.location.lng(); // get longitude of address
+            });
+            google.maps.event.addListener(eautocomplete, 'place_changed', function() {
+                var place = eautocomplete.getPlace();
+                latitude = place.geometry.location.lat();
+                longitude = place.geometry.location.lng();
+            });
+        }
     </script>
     <title>Outage Alert</title>
 </head>
@@ -515,12 +556,12 @@
                         <form id="new-property-form" action="https://ec2-35-183-181-30.ca-central-1.compute.amazonaws.com/controller.php" method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']);?>">
                             <div class="form-group">
                                 <label for="property-name">Property Name:</label>
-                                <input type="text" class="form-control" id="property-name" name="property-name" value="property-name" required>
+                                <input type="text" class="form-control" id="property-name" name="property-name" placeholder="property-name" required>
                                 <div class="invalid-feedback" id="pname-error"></div>
                             </div>
                             <div class="form-group">
                                 <label for="address">Address:</label>
-                                <input type="text" class="form-control" id="address" name="address" value="address" required>
+                                <input type="text" class="form-control" id="address" name="address" placeholder="address" required>
                                 <div class="invalid-feedback" id="address-error"></div>
                             </div>
                         </form>
@@ -545,12 +586,12 @@
                         <form id="edit-property-form" action="https://ec2-35-183-181-30.ca-central-1.compute.amazonaws.com/controller.php" method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']);?>">
                             <div class="form-group">
                                 <label for="eproperty-name">Property Name:</label>
-                                <input type="text" class="form-control" id="eproperty-name" name="property-name" value="property-name" required>
+                                <input type="text" class="form-control" id="eproperty-name" name="property-name" placeholder="property-name" required>
                                 <div class="invalid-feedback" id="epname-error"></div>
                             </div>
                             <div class="form-group">
                                 <label for="eaddress">Address:</label>
-                                <input type="text" class="form-control" id="eaddress" name="address" value="address" required>
+                                <input type="text" class="form-control" id="eaddress" name="address" placeholder="address" required>
                                 <div class="invalid-feedback" id="eaddress-error"></div>
                             </div>
                         </form>
@@ -584,17 +625,17 @@
                         <form id="new-notification-form" action="https://ec2-35-183-181-30.ca-central-1.compute.amazonaws.com/controller.php" method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']);?>">
                             <div class="form-group">
                                 <label for="recipient-name">Recipient Name:</label>
-                                <input type="text" class="form-control" id="recipient-name" name="recipient-name" value="recipient-name">
+                                <input type="text" class="form-control" id="recipient-name" name="recipient-name" placeholder="recipient-name">
                                 <div class="invalid-feedback" id="rname-error"></div>
                             </div>
                             <div class="form-group">
                                 <label for="email">Email Address:</label>
-                                <input type="email" class="form-control" id="email" name="email" value="email" required>
+                                <input type="email" class="form-control" id="email" name="email" placeholder="email" required>
                                 <div class="invalid-feedback" id="email-error"></div>
                             </div>
                             <div class="form-group">
                                 <label for="phone-number">Phone Number:</label>
-                                <input type="number" class="form-control" id="phone-number" name="phone-number">
+                                <input type="tel" class="form-control" id="phone-number" name="phone-number" placeholder="123-456-7890" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}">
                                 <div class="invalid-feedback" id="pnumber-error"></div>
                             </div>
                         </form>
@@ -619,17 +660,17 @@
                         <form id="edit-notification-form" action="https://ec2-35-183-181-30.ca-central-1.compute.amazonaws.com/controller.php" method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']);?>">
                             <div class="form-group">
                                 <label for="erecipient-name">Recipient Name:</label>
-                                <input type="text" class="form-control" id="erecipient-name" name="recipient-name" value="recipient-name">
+                                <input type="text" class="form-control" id="erecipient-name" name="recipient-name" placeholder="recipient-name">
                                 <div class="invalid-feedback" id="ername-error"></div>
                             </div>
                             <div class="form-group">
                                 <label for="eemail">Email Address:</label>
-                                <input type="email" class="form-control" id="eemail" name="email" value="email" required>
+                                <input type="email" class="form-control" id="eemail" name="email" placeholder="email" required>
                                 <div class="invalid-feedback" id="eemail-error"></div>
                             </div>
                             <div class="form-group">
                                 <label for="ephone-number">Phone Number:</label>
-                                <input type="number" class="form-control" id="ephone-number" name="phone-number">
+                                <input type="tel" class="form-control" id="ephone-number" name="phone-number" placeholder="123-456-7890" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}">
                                 <div class="invalid-feedback" id="epnumber-error"></div>
                             </div>
                         </form>
