@@ -35,7 +35,7 @@ verbose = True
 
 # CANCELLED POWER OUTAGES ---------------------------------------------------------------
 ListOfOutageMessages = AppModelOutageMessages.GenerateCancelledOutageMessages(cancelledOutageIDSet)
-if verbose: print("ListOfOutageMessages (cancelled):", ListOfOutageMessages)
+if verbose: print("\n\nListOfOutageMessages (cancelled):", ListOfOutageMessages)
 
 
 
@@ -51,7 +51,7 @@ if err != None:
 
 # Generate the messages we will send to users for the new outages
 ListOfOutageMessages += AppModelOutageMessages.GenerateNewOutageMessages(newOutages)
-if verbose: print("ListOfOutageMessages (new):", ListOfOutageMessages)
+if verbose: print("\n\nListOfOutageMessages (new):", ListOfOutageMessages)
 
 
 # TODO: Find a more efficient way to retrieve a more concise list of relevant properties from the DB
@@ -133,27 +133,38 @@ if err != None:
 
 # Generate the messages we will send to users for the outage updates and add that to the list of outage messages.
 ListOfOutageMessages += AppModelOutageMessages.GenerateOutageUpdateMessages(updateOutages)
-if verbose:  print("ListOfOutageMessages (upd):",ListOfOutageMessages)
+if verbose:  print("\n\nListOfOutageMessages (upd):",ListOfOutageMessages)
 
 
 
-# SEND MESSAGES ----------------------------------------------------------------
+# SEND EMAIL MESSAGES ----------------------------------------------------------------
 (OutageUsersByEmail, err) = AppModelDB.GetOutageUsersByEmail()
 if err != None:
     # TODO: There was a problem retrieving info from the database. Handle this error                                             <----
     print("ERROR RETREIVING OutageUsersByEmail!")
 
+
+if verbose:  print(f"\n\nOutageUsersByEmai: {OutageUsersByEmail}")
+messages = AppModelSESMail.createEmailMessages(ListOfOutageMessages, OutageUsersByEmail)
+
+if verbose:  print("\n\nMessages:", messages)
+AppModelSESMail.sendOutageEmailsToUsers(messages)
+print("EMAILS SENT!")
+
+
+
+# SEND EMAIL-to-TEXT MESSAGES ----------------------------------------------------------------
 (OutageUsersByPhone, err) = AppModelDB.GetOutageUsersByPhone()
 if err != None:
     # TODO: There was a problem retrieving info from the database. Handle this error                                             <----
     print("ERROR RETREIVING OutageUsersByPhone!")
 
-if verbose:  print(f"OutageUsersByEmai: {OutageUsersByEmail}")
-messages = AppModelSESMail.createEmailMessages(ListOfOutageMessages, OutageUsersByEmail)
+if verbose:  print(f"\n\nOutageUsersByPhone: {OutageUsersByPhone}")
+messages = AppModelSESMail.createEmailSMSTextMessages(ListOfOutageMessages, OutageUsersByPhone)
 
-if verbose:  print("Messages:",messages)
+if verbose:  print("\n\nMessages:", messages)
 AppModelSESMail.sendOutageEmailsToUsers(messages)
-print("SENT!")
+print("EMAIL-to-TEXTs SENT!")
 
 
 

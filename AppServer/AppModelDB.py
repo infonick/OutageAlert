@@ -421,7 +421,7 @@ def GetOutageUsersByEmail():
         sql += "FROM (((`Property Outage` INNER JOIN Property ON `Property Outage`.PropertyID = Property.PropertyID) "
         sql += "INNER JOIN `Recipient Properties` ON Property.PropertyID = `Recipient Properties`.PropertyID) "
         sql += "INNER JOIN Recipients ON Recipients.Name = `Recipient Properties`.Name AND Recipients.AccountID = `Recipient Properties`.AccountID) "
-        sql += "WHERE `Property Outage`.Active = True AND Recipients.`Contact Email` IS NOT NULL "
+        sql += "WHERE `Property Outage`.Active = True AND Recipients.`Contact Email` IS NOT NULL AND (`Recipient Properties`.Active = 2 OR `Recipient Properties`.Active = 3) "
         sql += "ORDER BY Recipients.`Contact Email` ASC, Recipients.Name ASC;"
         
         # Execute the SQL command
@@ -460,11 +460,11 @@ def GetOutageUsersByPhone():
     try:
         OpenDBConnection()
         
-        sql =  "SELECT `Property Outage`.OutageID, Property.PropertyID, Property.`Property Name`, Property.Address, Recipients.Name, Recipients.Phone "
+        sql =  "SELECT `Property Outage`.OutageID, Property.PropertyID, Property.`Property Name`, Property.Address, Recipients.Name, Recipients.Phone, Recipients.CarrierEmail "
         sql += "FROM (((`Property Outage` INNER JOIN Property ON `Property Outage`.PropertyID = Property.PropertyID) "
         sql += "INNER JOIN `Recipient Properties` ON Property.PropertyID = `Recipient Properties`.PropertyID) "
         sql += "INNER JOIN Recipients ON Recipients.Name = `Recipient Properties`.Name AND Recipients.AccountID = `Recipient Properties`.AccountID) "
-        sql += "WHERE `Property Outage`.Active = True AND Recipients.Phone IS NOT NULL "
+        sql += "WHERE `Property Outage`.Active = True AND Recipients.Phone IS NOT NULL AND (`Recipient Properties`.Active = 1 OR `Recipient Properties`.Active = 3) "
         sql += "ORDER BY Recipients.Phone ASC, Recipients.Name ASC;"
         
         # Execute the SQL command

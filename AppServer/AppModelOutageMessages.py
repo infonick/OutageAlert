@@ -78,16 +78,16 @@ def GenerateOutageMessages(existingOutageInfo, updatedOutageInfo):
             if oldValue == None and newValue != None:
                 outageMessages.append((key, priority, "Power restoration crew status: " + newValue))
             elif newValue != None:
-                outageMessages.append((key, priority, "Power restoration crew status updated from \'" + oldValue + "\' to \'" + newValue + "\'."))
+                outageMessages.append((key, priority, "Power restoration crew status updated to \'" + newValue + "\' from \'" + oldValue + "\' ."))
             continue
 
 
         elif key == 'cause':
             priority = 4
             if oldValue == None and newValue != None:
-                outageMessages.append((key, priority, "Cause of power outage: " + newValue))
+                outageMessages.append((key, priority, "Cause of outage: " + newValue))
             elif newValue != None:
-                outageMessages.append((key, priority, "Cause of power outage updated from \'" + oldValue + "\' to \'" + newValue + "\'."))
+                outageMessages.append((key, priority, "Cause of outage updated from \'" + oldValue + "\' to \'" + newValue + "\'."))
             continue
 
 
@@ -96,9 +96,9 @@ def GenerateOutageMessages(existingOutageInfo, updatedOutageInfo):
             dateTimeOff = AppTimeLib.DateTimeFromJSToPython(newValue)
             dateTimeOff = AppTimeLib.PythonChangeTimeZone(dateTimeOff, 'America/Vancouver')
             if oldValue == None and newValue != None:
-                outageMessages.append((key, priority, "Power outage began on " + datetime.datetime.strftime(dateTimeOff, '%Y-%b-%d %I:%M:%S %p %Z')))
+                outageMessages.append((key, priority, "Outage began on " + datetime.datetime.strftime(dateTimeOff, '%Y-%b-%d %I:%M:%S %p %Z')))
             elif newValue != None:
-                outageMessages.append((key, priority, "Power outage start time was updated to " + datetime.datetime.strftime(dateTimeOff, '%Y-%b-%d %I:%M:%S %p %Z')))
+                outageMessages.append((key, priority, "Outage start time was updated to " + datetime.datetime.strftime(dateTimeOff, '%Y-%b-%d %I:%M:%S %p %Z')))
             continue
 
 
@@ -149,7 +149,7 @@ def GenerateCancelledOutageMessages(outageIDList):
 
     if len(outageIDList) > 0:
         for id in outageIDList:
-            newOutageAlerts.append(  (id, [('Cancellation', 0, "This power outage has now been cancelled.")])  ) # Create a tuple consisting of the outage ID number, and all the related update messages for that outage ID
+            newOutageAlerts.append(  (id, [('Cancellation', 0, "This power outage event has now been cancelled.")])  ) # Create a tuple consisting of the outage ID number, and all the related update messages for that outage ID
 
     return newOutageAlerts
 

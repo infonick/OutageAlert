@@ -16,13 +16,13 @@ from creds import *
 
 
 # Information for server connection 
-sesServerAddress = 'email-smtp.ca-central-1.amazonaws.com'
+#sesServerAddress = 'email-smtp.ca-central-1.amazonaws.com'
 sesPort = 465               # 465 is for secure connections like SSL/TLS
 # sesUsername = ''
 # sesPassword = ''
 
 # Generic email information
-emailSentFromAddress = "infonick@gmail.com"
+emailSentFromAddress = "aoutage@gmail.com"
 
 
 def sendOutageEmailsToUsers(messages):
@@ -118,6 +118,40 @@ def createEmailMessages(ListOfOutageMessages, OutageUsersByEmail):
 
 
 
+
+
+def createEmailSMSTextMessages(ListOfOutageMessages, OutageUsersByPhone):
+    # Reference: ListOfOutageMessages[i](id#,[(),()]) = [ (OutageIDNumber, [ ('key', int_priority, "message"), ('key', int_priority, "message"), ... ]),  ... ]
+    # Reference: OutageUsersByPhone[i][key]     where    key = 'OutageID' 'PropertyID', 'Property Name', 'Address', 'Name', 'Phone', 'CarrierEmail'
+    # Creates one email-to-text message per property 
+    
+    messages = []
+    i = 0
+
+    while (i < len(OutageUsersByPhone)) and (len(ListOfOutageMessages) > 0) and (len(OutageUsersByPhone) > 0):
+
+        if checkUserHasNoOutageInList(ListOfOutageMessages, OutageUsersByPhone[i]['OutageID']):
+            i += 1
+            continue
+
+        newMessage  = f"Hello {OutageUsersByPhone[i]['Name']},\r\n"
+        newMessage += f"A power outage has been detected for {OutageUsersByPhone[i]['Property Name']}: \r\n"
+        newMessage += getMessagesFromList(ListOfOutageMessages, OutageUsersByPhone[i]['OutageID'])
+
+        
+        messages.append(   {'recipientEmail': f"{OutageUsersByPhone[i]['Phone']}{OutageUsersByPhone[i]['CarrierEmail']}" , # 'Carrier'NOT IN THE DB YET!!!
+                            'emailMessage': newMessage
+                            })
+       
+        i += 1
+
+    return messages
+
+
+
+
+
+
 def getMessagesFromList(ListOfOutageMessages, OutageID):
     
     outageMessages = ""
@@ -128,6 +162,8 @@ def getMessagesFromList(ListOfOutageMessages, OutageID):
                 outageMessages += f"  - {msg}\r\n"
 
     return outageMessages            
+
+
 
 
 
