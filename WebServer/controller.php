@@ -94,7 +94,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'){
                 echo $places;
                 exit();
             case 'NewRecipient':
-                new_recipient($_POST['name'], $_POST['pnumber'], $_POST['email'], $_SESSION['userid']);
+                if ($_POST['pnumber'] == "") {
+                    $pnumber = NULL;
+                }
+                else {
+                    $pnumber = $_POST['pnumber'];
+                }
+                new_recipient($_POST['name'], $pnumber, $_POST['email'], $_SESSION['userid']);
                 exit();
             case 'EditRecipient':
                 edit_recipient($_POST['name'], $_POST['pnumber'], $_POST['email'], $_POST['oname'], $_POST['onumber'], $_POST['oemail'], $_SESSION['userid']);

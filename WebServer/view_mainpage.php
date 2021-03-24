@@ -10,7 +10,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
     <!-- Bootstrap - Latest compiled JavaScript -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?libraries=places&callback=initAutocomplete&language=nl&output=json&key=API_KEY" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?libraries=places&callback=initAutocomplete&language=nl&output=json&key=AIzaSyDucgnJ1zvFoS84k88hhjB58MKFO-qXFas" async defer></script>
     <style>
         .pac-container {
             background-color: #FFF;
@@ -159,7 +159,8 @@
             });
         });
 
-        // TODO - better method for adding address. google places api?
+        // TODO - Undefined error when adding a new property in recipient properties subtable
+        // TODO - Bug. Can't have duplicate property names
         function checkNewProperty() {
             var form = $('#new-property-form');
             var controller = "controller.php";
@@ -185,6 +186,8 @@
                     $('#nproperty-success').toast({delay:1000});
                     $('#nproperty-success').toast('show');
                     loadProperties();
+                    counter = 0;
+                    recipientNames = [];
                     loadRecipients();
                     setTimeout(function () {
                         $('#new-property').modal('hide');
@@ -217,6 +220,8 @@
                     $('#eproperty-success').toast({delay:1000});
                     $('#eproperty-success').toast('show');
                     loadProperties();
+                    counter = 0;
+                    recipientNames = [];
                     loadRecipients();
                     setTimeout(function () {
                         $('#new-property').modal('hide');
@@ -224,6 +229,7 @@
                 });
         }
 
+        // TODO -
         function checkNewRecipient() {
             var form = $('#new-notification-form');
             var controller = "controller.php";
@@ -245,18 +251,19 @@
                 return false;
             }
             // only need an email or a phone number, so we check if they are not empty before validating
-            if (email != "" && (!email.includes("@") || !email.includes("."))) {
+            else if (email != "" && (!email.includes("@") || !email.includes("."))) {
                 let field = form.find('[name="email"]');
                 field.addClass("is-invalid");
                 document.getElementById("email-error").innerText = "Please enter a valid email address.";
                 return false;
             }
-            if (pnumber != "" && pnumber.length != 10) {
+            else if (pnumber != "" && pnumber.length != 10) {
                 let field = form.find('[name="phone-number"]');
                 field.addClass("is-invalid");
                 document.getElementById("pnumber-error").innerText = "Please enter a 10-digit phone number.";
                 return false;
             }
+            // TODO - bug here. can't pass empty value "" to number column in database
             $.post(controller,
                 {
                     page: "MainPage", command: "NewRecipient", name: name, email: email, pnumber: pnumber
@@ -264,6 +271,8 @@
                 function (result) {
                     $('#nrecipient-success').toast({delay:1000});
                     $('#nrecipient-success').toast('show');
+                    counter = 0;
+                    recipientNames = [];
                     loadRecipients();
                     setTimeout(function () {
                         $('#new-notification').modal('hide');
@@ -271,6 +280,7 @@
                 });
         }
 
+        // TODO - does not update the database
         function checkEditRecipient() {
             var form = $('#edit-notification-form');
             var controller = "controller.php";
@@ -306,11 +316,14 @@
             }
             $.post(controller,
                 {
-                    page: "MainPage", command: "EditRecipient", name: name, email: email, pnumber: pnumber, oname: originalName, oemail: originalEmail, onumber: originalPhone
+                    page: "MainPage", command: "EditRecipient", name: name, email: email, pnumber: pnumber, oname: originalRName, oemail: originalEmail, onumber: originalPhone
                 },
                 function (result) {
                     $('#erecipient-success').toast({delay:1000});
                     $('#erecipient-success').toast('show');
+                    counter = 0;
+                    recipientNames = [];
+                    tableNumber = 0;
                     loadRecipients();
                     setTimeout(function () {
                         $('#edit-notification').modal('hide');
@@ -362,6 +375,7 @@
         }
 
         var recipientNames = []; // global variable to hold recipient names for creating properties subtables
+        var tableNumber = 0; // global variable to hold subtable number, used for getting div id to update subtables when changing notification status
         function createRecipientsTable(jsonArray) {
             var obj = JSON.parse(jsonArray);
             var table = "<table class='table table-striped'><thead class='thead-dark'><tr><th>Recipient Name</th><th>Phone Number</th><th>Email Address</th><th></th></tr></thead><tbody>";
@@ -376,26 +390,23 @@
                     }
                     else if (col == 1) {
                         item2 = (obj[i])[j];
-                        if (item2 == "") {item2 = "-";}
                         col = 2;
                     }
                     else if (col == 2) {
                         item3 = (obj[i])[j];
-                        if (item2 == "") {item2 = "-";}
                     }
                     table += "<td>" + (obj[i])[j] + "</td>";
                 }
                 col = 0;
                 var ptable = loadPropertiesSubtables(item);
-                table += `<td><button type='button' class='btn btn-secondary' onclick='editRecipient(\"${item}\", \"${item2}\", \"${item3}\")'>Edit</button><button type='button' data-toggle='collapse' id='entry${i}' style='visibility:hidden' data-target='#row${i}'></button></td></tr><tr id='row${i}' class='collapse'><td colspan='4'><div id='props${i}'>${ptable}</div></td></tr>`;
+                table += `<td><button type='button' class='btn btn-secondary' onclick='editRecipient(\"${item}\", ${item2}, \"${item3}\")'>Edit</button><button type='button' data-toggle='collapse' id='entry${i}' style='visibility:hidden' data-target='#row${i}'></button></td></tr><tr id='row${i}' class='collapse'><td colspan='4'><div id='props${i}'>${ptable}</div></td></tr>`;
             }
             table += "</tbody></table>";
             return table;
         }
 
-        var tableNumber = 0; // global variable to hold subtable number, used for getting div id to update subtables when changing notification status
+
         function createPropertiesSubtable(jsonArray, uname) {
-            tableNumber = 0;
             var obj = JSON.parse(jsonArray);
             var table = "<table class='table table-borderless'><thead class='thead-dark'><tr><th>Property Name</th><th>Send SMS</th><th>Send Email</th></tr></thead><tbody>";
             for (var i = 0; i < obj.length; i++) {
@@ -436,9 +447,9 @@
                     else if (item4 == 3) {
                         table += `<td><input type='checkbox' value='' onclick='changeNotificationStatus(\"${item}\", \"${item3}\", 2, ${tableNumber})' checked></td><td><input type='checkbox' value='' onclick='changeNotificationStatus(\"${item}\", \"${item3}\", 1, ${tableNumber})' checked></td></tr>`;
                     }
-                    tableNumber++;
                 }
             }
+            tableNumber++;
             table += "</tbody></table>";
             return table;
         }
@@ -461,6 +472,7 @@
             $.post(controller,
                 {page: "MainPage", command: "GetRecipientProperties", name: uname},
                 function(result){
+                    tableNumber = divNumber;
                     var table = createPropertiesSubtable(result, uname);
                     document.getElementById("props" + divNumber).innerHTML = table;
                 });
@@ -488,7 +500,7 @@
 
         var originalRName = "";
         var originalPhone = 0;
-        var originalEmail = ""
+        var originalEmail = "";
         function editRecipient(name, number, email) {
             originalRName = name;
             originalPhone = number;
@@ -677,7 +689,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-danger mr-auto" data-dismiss="modal" id="erecipient-cancel">Cancel</button>
-                        <button type="button" class="btn btn-success" id="erecipient-button">Add</button>
+                        <button type="button" class="btn btn-success" id="erecipient-button">Edit</button>
                         <div class="toast text-white bg-success float-right" id="erecipient-success">
                             <div class="toast-body">Recipient details updated.</div>
                         </div>

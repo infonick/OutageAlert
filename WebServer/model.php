@@ -77,7 +77,6 @@ function get_user_id($email) {
 
 # TODO - method to change user's password
 
-# TODO - figure out latitude and longitude properly
 function new_property($name, $address, $aid, $lat, $lon) {
     global $conn;
 
@@ -91,6 +90,7 @@ function new_property($name, $address, $aid, $lat, $lon) {
     }
 
     # TODO - this probably won't work with an empty account with no properties. should insert some checks for that.
+    # TODO - definitely doesn't work with empty account. Need to fix this.
     // create recipient property entries for each existing recipient with new property
     $sproperties = get_property_id($aid);
     $properties = array();
@@ -189,10 +189,14 @@ function new_recipient($name, $phonenumber, $email, $id) {
 function edit_recipient($name, $number, $email, $oname, $onumber, $oemail, $userid) {
     global $conn;
 
-    $sql = "UPDATE Recipients SET `Recipient Name`='$name', Phone=$number, `Contact Email`='$email' WHERE `Recipient Name`='$oname' AND Phone=$onumber AND `Contact Email`='$oemail' AND AccountID=$userid";
-    $result = mysqli_query($conn, $sql);
-
-    return $result;
+    $sql = "UPDATE Recipients SET Name='$name', Phone=$number, `Contact Email`='$email' WHERE Name='$oname' AND Phone=$onumber AND `Contact Email`='$oemail' AND AccountID=$userid";
+    if (mysqli_query($conn, $sql)) {
+        error_log("New property successfully added.");
+    }
+    else {
+        error_log("Error: ").$sql.("<br>").$conn->error;
+        echo $conn->error;
+    }
 }
 
 function get_recipients($userid) {
@@ -245,5 +249,43 @@ function set_notification_status($name, $pid, $status) {
     return $result;
 }
 
+# checks if the Locked column is equal to 0, 0 meaning the account is not locked
+function check_account_status($email) {
+    global $conn;
+
+    $sql = "SELECT Locked FROM Account WHERE Email ='$email'";
+    $result = mysqli_query($conn, $sql);
+
+    while ($row = mysqli_fetch_assoc($result)) {
+        if($row["Locked"] == 0) {
+            return true;
+        }
+        else{
+            error_log("Account is locked");
+            return false;
+        }
+    }
+
+}
+
+# TODO - test if this funtions properly
+function reset_password($email, $oldpassword, $newpassword) {
+    global $conn;
+
+    $valid = check_validity($email, $oldpassword);
+
+    if ($valid = true) {
+        $sql = "UPDATE Account SET Password = '$newpassword";
+        $result = mysqli_query($conn, $sql);
+        error_log("Password updated");
+        return $result;
+    }
+    else {
+        error_log("Could not update password");
+        return false;
+    }
+
+
+}
 
 ?>
