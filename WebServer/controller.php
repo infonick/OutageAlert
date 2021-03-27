@@ -94,16 +94,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'){
                 echo $places;
                 exit();
             case 'NewRecipient':
-                if ($_POST['pnumber'] == "") {
-                    $pnumber = NULL;
-                }
-                else {
-                    $pnumber = $_POST['pnumber'];
-                }
-                new_recipient($_POST['name'], $pnumber, $_POST['email'], $_SESSION['userid']);
+                new_recipient($_POST['name'], $_POST['pnumber'], $_POST['provider'], $_POST['email'], $_SESSION['userid']);
                 exit();
             case 'EditRecipient':
-                edit_recipient($_POST['name'], $_POST['pnumber'], $_POST['email'], $_POST['oname'], $_POST['onumber'], $_POST['oemail'], $_SESSION['userid']);
+                edit_recipient($_POST['name'], $_POST['pnumber'], $_POST['provider'], $_POST['email'], $_POST['oname'], $_POST['onumber'], $_POST['oprovider'], $_POST['oemail'], $_SESSION['userid']);
                 exit();
             case 'GetRecipients':
                 $srecipients = get_recipients($_SESSION['userid']);

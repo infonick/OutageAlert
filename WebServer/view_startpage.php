@@ -225,12 +225,12 @@
                 <h4>Sign In</h4>
                 <div class="form-group">
                     <label for="email">Email Address:</label>
-                    <input type="email" class="form-control" id="signin-email" name="email" value="email" required>
+                    <input type="email" class="form-control" id="signin-email" name="email" placeholder="email" required>
                     <div class="invalid-feedback" id="signin-email-error"></div>
                 </div>
                 <div class="form-group">
                     <label for="loginpassword">Password:</label>
-                    <input type="password" class="form-control" id="signin-password" name="password" value="password" required>
+                    <input type="password" class="form-control" id="signin-password" name="password" placeholder="password" required>
                     <div class="invalid-feedback" id="signin-password-error">Please enter a valid password.</div>
 
                     <!-- TODO: figure out how best to handle resetting a password. jquery, popup window, idk? -->
@@ -261,12 +261,12 @@
                 <h4>Create Account</h4>
                 <div class="form-group">
                     <label for="email">Email Address:</label>
-                    <input type="email" class="form-control" name="email" value="email" id="join-email" required>
+                    <input type="email" class="form-control" name="email" placeholder="email" id="join-email" required>
                     <div class="invalid-feedback" id="join-email-error">Please enter a valid email address.</div>
                 </div>
                 <div class="form-group">
                     <label for="joinpassword">Password:</label>
-                    <input type="password" class="form-control" id="join-password" name="password" value="password" required>
+                    <input type="password" class="form-control" id="join-password" name="password" placeholder="password" required>
                     <div class="invalid-feedback" id="join-password-error">Please enter a valid password.</div>
                 </div>
                 <div class="form-check" style="padding-bottom: 25px">
@@ -291,12 +291,12 @@
                 <h4>Reset Password</h4>
                 <div class="form-group">
                     <label for="email">Email Address:</label>
-                    <input type="email" class="form-control" id="reset-email" name="email" value="email" required>
+                    <input type="email" class="form-control" id="reset-email" name="email" placeholder="email" required>
                     <div class="invalid-feedback"></div>
                 </div>
                 <div class="form-group" style="padding-bottom: 50px">
                     <button type="button" class="btn btn-primary float-right" id="reset-password">Send Reset Request</button>
-                    <input type="hidden" name="command" value="ResetPass">
+                    <input type="hidden" name="command" value="placeholder">
                 </div>
                 <hr/>
                 <div class="form-group" style="text-align: center">

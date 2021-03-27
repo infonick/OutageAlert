@@ -158,15 +158,23 @@ function edit_property($name, $address, $oname, $oaddress, $lat, $lon, $userid) 
 }
 
 # method to add a new recipient
-function new_recipient($name, $phonenumber, $email, $id) {
+function new_recipient($name, $phonenumber, $provider, $email, $id) {
     global $conn;
 
-    $sql = "INSERT INTO Recipients VALUES ('$name', $phonenumber, '$email', $id)";
+    $provider = mysqli_real_escape_string($conn, $provider);
+
+    if ($phonenumber == "") {
+        $sql = "INSERT INTO Recipients VALUES ('$name', NULL, '$provider', '$email', $id)";
+    }
+    else {
+        $sql = "INSERT INTO Recipients VALUES ('$name', $phonenumber, '$provider', '$email', $id)";
+    }
     if (mysqli_query($conn, $sql)) {
         error_log("New recipient successfully added.");
     }
     else {
         error_log("Error: ").$sql.("<br>").$conn->error;
+        print($conn->error);
     }
 
     // create recipient property entries for all existing properties and new recipient
@@ -186,10 +194,21 @@ function new_recipient($name, $phonenumber, $email, $id) {
 
 }
 
-function edit_recipient($name, $number, $email, $oname, $onumber, $oemail, $userid) {
+function edit_recipient($name, $number, $provider, $email, $oname, $onumber, $oprovider, $oemail, $userid) {
     global $conn;
 
-    $sql = "UPDATE Recipients SET Name='$name', Phone=$number, `Contact Email`='$email' WHERE Name='$oname' AND Phone=$onumber AND `Contact Email`='$oemail' AND AccountID=$userid";
+    $provider = mysqli_real_escape_string($conn, $provider);
+
+    if ($onumber == "-" || $onumber == "") {
+        $sql = "UPDATE Recipients SET Name='$name', Phone=$number, Provider='$provider', `Contact Email`='$email' WHERE Name='$oname' AND `Contact Email`='$oemail' AND AccountID=$userid";
+    }
+    else if ($number == "-" || $number == "") {
+        $sql = "UPDATE Recipients SET Name='$name', Phone=NULL, Provider='$provider', `Contact Email`='$email' WHERE Name='$oname' AND Phone=$onumber AND `Contact Email`='$oemail' AND AccountID=$userid";
+    }
+    else {
+        $sql = "UPDATE Recipients SET Name='$name', Phone=$number, Provider='$provider', `Contact Email`='$email' WHERE Name='$oname' AND Phone=$onumber AND `Contact Email`='$oemail' AND AccountID=$userid";
+    }
+
     if (mysqli_query($conn, $sql)) {
         error_log("New property successfully added.");
     }
@@ -202,7 +221,7 @@ function edit_recipient($name, $number, $email, $oname, $onumber, $oemail, $user
 function get_recipients($userid) {
     global $conn;
 
-    $sql = "SELECT Name, Phone, `Contact Email` FROM Recipients WHERE AccountID=$userid";
+    $sql = "SELECT Name, Phone, Provider, `Contact Email` FROM Recipients WHERE AccountID=$userid";
     $result = mysqli_query($conn, $sql);
 
     return $result;

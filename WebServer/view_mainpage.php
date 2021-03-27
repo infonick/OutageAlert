@@ -30,12 +30,17 @@
         // hide the create account form on initial load (done using regular javascript to prevent flickering)
         // probably a better way to do this. still minor flickering. should look into that
         window.addEventListener("load", function () {
-            loadProperties();
-            loadRecipients();
+            console.log("load");
+
         });
     </script>
-    <script>
+    <script defer>
         $(document).ready(function () {
+            recipientNames = [];
+            tableNumber = 0;
+            loadProperties();
+            loadRecipients();
+            console.log("ready");
             // validates, submits, and resets the new property form
             $('#nproperty-button').click(function () {
                 checkNewProperty();
@@ -93,7 +98,7 @@
             $('#nrecipient-button').click(function () {
                checkNewRecipient();
                 setTimeout(function () {
-                    document.getElementById("new-property-form").reset();
+                    document.getElementById("new-notification-form").reset();
                 }, 1000);
             });
             // resets the new notification form on clicking cancel
@@ -186,7 +191,6 @@
                     $('#nproperty-success').toast({delay:1000});
                     $('#nproperty-success').toast('show');
                     loadProperties();
-                    counter = 0;
                     recipientNames = [];
                     loadRecipients();
                     setTimeout(function () {
@@ -220,7 +224,6 @@
                     $('#eproperty-success').toast({delay:1000});
                     $('#eproperty-success').toast('show');
                     loadProperties();
-                    counter = 0;
                     recipientNames = [];
                     loadRecipients();
                     setTimeout(function () {
@@ -236,6 +239,7 @@
             var name = document.getElementById("recipient-name").value;
             var email = document.getElementById("email").value;
             var pnumber = document.getElementById("phone-number").value;
+            var provider = document.getElementById("carrier").value;
             if (name == "") {
                 let field = form.find('[name="recipient-name"]');
                 field.addClass("is-invalid");
@@ -266,13 +270,13 @@
             // TODO - bug here. can't pass empty value "" to number column in database
             $.post(controller,
                 {
-                    page: "MainPage", command: "NewRecipient", name: name, email: email, pnumber: pnumber
+                    page: "MainPage", command: "NewRecipient", name: name, email: email, pnumber: pnumber, provider: provider
                 },
                 function (result) {
                     $('#nrecipient-success').toast({delay:1000});
                     $('#nrecipient-success').toast('show');
-                    counter = 0;
                     recipientNames = [];
+                    tableNumber = 0;
                     loadRecipients();
                     setTimeout(function () {
                         $('#new-notification').modal('hide');
@@ -287,6 +291,7 @@
             var name = document.getElementById("erecipient-name").value;
             var email = document.getElementById("eemail").value;
             var pnumber = document.getElementById("ephone-number").value;
+            var provider = document.getElementById("ecarrier").value;
             if (name == "") {
                 let field = form.find('[name="erecipient-name"]');
                 field.addClass("is-invalid");
@@ -316,12 +321,11 @@
             }
             $.post(controller,
                 {
-                    page: "MainPage", command: "EditRecipient", name: name, email: email, pnumber: pnumber, oname: originalRName, oemail: originalEmail, onumber: originalPhone
+                    page: "MainPage", command: "EditRecipient", name: name, email: email, pnumber: pnumber, provider: provider, oname: originalRName, oemail: originalEmail, onumber: originalPhone, oprovider: originalProvider
                 },
                 function (result) {
                     $('#erecipient-success').toast({delay:1000});
                     $('#erecipient-success').toast('show');
-                    counter = 0;
                     recipientNames = [];
                     tableNumber = 0;
                     loadRecipients();
@@ -378,7 +382,7 @@
         var tableNumber = 0; // global variable to hold subtable number, used for getting div id to update subtables when changing notification status
         function createRecipientsTable(jsonArray) {
             var obj = JSON.parse(jsonArray);
-            var table = "<table class='table table-striped'><thead class='thead-dark'><tr><th>Recipient Name</th><th>Phone Number</th><th>Email Address</th><th></th></tr></thead><tbody>";
+            var table = "<table class='table table-striped'><thead class='thead-dark'><tr><th>Recipient Name</th><th>Phone Number</th><th>Provider</th><th>Email Address</th><th></th></tr></thead><tbody>";
             for (var i = 0; i < obj.length; i++) {
                 table += `<tr onclick="getElementById('entry${i}').click()" style="cursor: pointer">`;
                 var col = 0
@@ -390,16 +394,20 @@
                     }
                     else if (col == 1) {
                         item2 = (obj[i])[j];
+                        if (item2 == null) { (obj[i])[j] = "-"; }
                         col = 2;
                     }
                     else if (col == 2) {
                         item3 = (obj[i])[j];
+                        col = 3;
+                    }
+                    else if (col == 3) {
+                        item4 = (obj[i])[j];
                     }
                     table += "<td>" + (obj[i])[j] + "</td>";
                 }
                 col = 0;
-                var ptable = loadPropertiesSubtables(item);
-                table += `<td><button type='button' class='btn btn-secondary' onclick='editRecipient(\"${item}\", ${item2}, \"${item3}\")'>Edit</button><button type='button' data-toggle='collapse' id='entry${i}' style='visibility:hidden' data-target='#row${i}'></button></td></tr><tr id='row${i}' class='collapse'><td colspan='4'><div id='props${i}'>${ptable}</div></td></tr>`;
+                table += `<td><button type='button' class='btn btn-secondary' onclick="editRecipient(\'${item}\', ${item2}, \`${item3}\`, \'${item4}\')">Edit</button><button type='button' data-toggle='collapse' id='entry${i}' style='visibility:hidden' data-target='#row${i}'></button></td></tr><tr id='row${i}' class='collapse'><td colspan='4'><div id='props${i}'></div></td></tr>`;
             }
             table += "</tbody></table>";
             return table;
@@ -410,6 +418,8 @@
             var obj = JSON.parse(jsonArray);
             var table = "<table class='table table-borderless'><thead class='thead-dark'><tr><th>Property Name</th><th>Send SMS</th><th>Send Email</th></tr></thead><tbody>";
             for (var i = 0; i < obj.length; i++) {
+                console.log(obj[i].Name);
+                console.log(uname);
                 if (obj[i].Name == uname) {
                     table += "<tr id='checkboxrow${i}'>";
                     var col = 0;
@@ -454,17 +464,17 @@
             return table;
         }
 
-        var counter = 0; // number corresponding to recipients, used to correctly create corresponding subtable
-        function loadPropertiesSubtables(uname) {
+         // number corresponding to recipients, used to correctly create corresponding subtable
+        function loadPropertiesSubtables(uname, counter) {
             var controller = "controller.php";
             $.post(controller,
                 {page: "MainPage", command: "GetRecipientProperties", name: uname},
                 function (result) {
                     var table = createPropertiesSubtable(result, recipientNames[counter]);
                     document.getElementById("props" + counter).innerHTML = table;
-                    counter++;
                 });
         }
+
 
         // reloads a single subtable when changing notification
         function reloadPropertiesSubtable(uname, divNumber) {
@@ -485,6 +495,9 @@
                 function(result){
                     var table = createRecipientsTable(result);
                     document.getElementById("recipients-pane").innerHTML = table;
+                    for (var i = 0; i < recipientNames.length; i++) {
+                        loadPropertiesSubtables(recipientNames[i], i);
+                    }
                 });
         }
 
@@ -501,12 +514,15 @@
         var originalRName = "";
         var originalPhone = 0;
         var originalEmail = "";
-        function editRecipient(name, number, email) {
+        var originalProvider = "";
+        function editRecipient(name, number, provider, email) {
             originalRName = name;
             originalPhone = number;
+            originalProvider = provider;
             originalEmail = email;
             document.getElementById("erecipient-name").value = name;
             document.getElementById("ephone-number").value = number;
+            document.getElementById("ecarrier").value = provider;
             document.getElementById("eemail").value = email;
             $('#edit-notification').show();
         }
@@ -625,7 +641,7 @@
 
         </div>
         <div class="row" style="padding-left: 100px">
-            <button class="btn btn-secondary" data-toggle="modal" data-target="#new-notification">Add New Notification</button>
+            <button class="btn btn-secondary" data-toggle="modal" data-target="#new-notification">Add New Recipient</button>
         </div>
         <div class="modal" id="new-notification">
             <div class="modal-dialog modal-dialog-centered">
@@ -649,6 +665,26 @@
                                 <label for="phone-number">Phone Number:</label>
                                 <input type="tel" class="form-control" id="phone-number" name="phone-number" placeholder="123-456-7890" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}">
                                 <div class="invalid-feedback" id="pnumber-error"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="carrier">Phone Service Provider:</label>
+                                <select class="form-control" id="carrier">
+                                    <option>N/A</option>
+                                    <option>Bell Canada</option>
+                                    <option>Bell Mobility (Canada)</option>
+                                    <option>Bell Mobility</option>
+                                    <option>Fido</option>
+                                    <option>Freedom Mobile</option>
+                                    <option>Microcell</option>
+                                    <option>President's Choice</option>
+                                    <option>Roger's Canada</option>
+                                    <option>Solo Mobile</option>
+                                    <option>Telus</option>
+                                    <option>Virgin Mobile</option>
+                                    <option>Koodo</option>
+                                    <option>Chatr</option>
+                                    <option>Sasktel</option>
+                                </select>
                             </div>
                         </form>
                     </div>
@@ -684,6 +720,24 @@
                                 <label for="ephone-number">Phone Number:</label>
                                 <input type="tel" class="form-control" id="ephone-number" name="phone-number" placeholder="123-456-7890" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}">
                                 <div class="invalid-feedback" id="epnumber-error"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="ecarrier">Phone Service Provider:</label>
+                                <select class="form-control" id="ecarrier">
+                                    <option>N/A</option>
+                                    <option>Bell Mobility</option>
+                                    <option>Fido</option>
+                                    <option>Freedom Mobile</option>
+                                    <option>Microcell</option>
+                                    <option>President's Choice</option>
+                                    <option>Roger's Canada</option>
+                                    <option>Solo Mobile</option>
+                                    <option>Telus</option>
+                                    <option>Virgin Mobile</option>
+                                    <option>Koodo</option>
+                                    <option>Chatr</option>
+                                    <option>Sasktel</option>
+                                </select>
                             </div>
                         </form>
                     </div>
