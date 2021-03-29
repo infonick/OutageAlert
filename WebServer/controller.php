@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'){
                     $newpass = tempPassword($_POST['email']);
                     $passreset = passwordResetEmail($_POST['email'], $newpass);
                     if ($passreset) {
-                        echo blind_reset_password($_POST['email'], $newpass);
+                        echo reset_password($_POST['email'], $newpass);
                     }
                     else {
                         echo false;
@@ -135,6 +135,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'){
                 exit();
             case 'ChangeNotificationStatus':
                 set_notification_status($_POST['name'], $_POST['pid'], $_POST['status']);
+                exit();
+            case 'ChangeUserPassword':
+                if (check_validity($_SESSION['email'], $_POST['oldpassword'])){
+                    reset_password($_SESSION['email'], $_POST['newpassword']);
+                }
                 exit();
         }
     }
