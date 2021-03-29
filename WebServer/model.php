@@ -293,8 +293,10 @@ function reset_password($email, $oldpassword, $newpassword) {
 
     $valid = check_validity($email, $oldpassword);
 
+    $hashed_password = hash("SHA256", $newpassword);
+
     if ($valid = true) {
-        $sql = "UPDATE Account SET Account.Password = '$newpassword' WHERE Account.Email = '$email'";
+        $sql = "UPDATE Account SET Account.Password = '$hashed_password' WHERE Account.Email = '$email'";
         $result = mysqli_query($conn, $sql);
         error_log("Password updated");
         return $result;
@@ -310,7 +312,9 @@ function reset_password($email, $oldpassword, $newpassword) {
 function blind_reset_password($email, $newpassword) {
     global $conn;
 
-    $sql = "UPDATE Account SET Account.Password = '$newpassword' WHERE Account.Email = '$email'";
+    $hashed_password = hash("SHA256", $newpassword);
+
+    $sql = "UPDATE Account SET Account.Password = '$hashed_password' WHERE Account.Email = '$email'";
     $result = mysqli_query($conn, $sql);
     error_log("Password updated");
     return $result;

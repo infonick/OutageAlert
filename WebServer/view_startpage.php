@@ -198,6 +198,8 @@
                     }
                 });
         }
+
+        // Function to reset account password from startpage.
         function resetAccountPassword() {
             var form = $('#forgotpassform');
             var controller = "controller.php";
@@ -205,12 +207,14 @@
             if (text == "") {
                 let field = form.find('[name="email"]');
                 field.addClass("is-invalid");
-                document.getElementById("forgotpw-email-error").innerText = "Please enter an email address.";
+                field.removeClass("is-valid");
+                document.getElementById("forgotpw-email-error").innerHTML = "Please enter an email address.";
                 return false;
             } else if (!text.includes("@") || !text.includes(".")) {
                 let field = form.find('[name="email"]');
                 field.addClass("is-invalid");
-                document.getElementById("forgotpw-email-error").innerText = "Please enter a valid email address.";
+                field.removeClass("is-valid");
+                document.getElementById("forgotpw-email-error").innerHTML = "Please enter a valid email address.";
                 return false;
             }
 
@@ -221,11 +225,13 @@
                 function (result) {
                     let field = form.find('[name="email"]')
                     if (result == true) {
-                        field.addClass("is-valid")
-                        document.getElementById("forgotpw-email-error").innerText = "Email sent - please check your inbox."
+                        field.addClass("is-valid");
+                        field.removeClass("is-invalid");
+                        document.getElementById("forgotpw-email-ok").innerHTML = "Email sent - please check your inbox.";
                     } else {
-                        field.addClass("is-invalid")
-                        document.getElementById("forgotpw-email-error").innerText = "ERROR - please check your email or <a href='mailto:aoutage@gmail.com'>contact the administrators</a> for assistance."
+                        field.addClass("is-invalid");
+                        field.removeClass("is-valid");
+                        document.getElementById("forgotpw-email-error").innerHTML = "ERROR - please check your email or <a href='mailto:aoutage@gmail.com'>contact the administrators</a> for assistance.";
                     }
                 });
         }
@@ -325,6 +331,7 @@
                     <label for="email">Email Address:</label>
                     <input type="email" class="form-control" id="reset-email" name="email" placeholder="email" required>
                     <div class="invalid-feedback" id="forgotpw-email-error"></div>
+                    <div class="valid-feedback" id="forgotpw-email-ok"></div>
                 </div>
                 <div class="form-group" style="padding-bottom: 50px">
                     <button type="button" class="btn btn-primary float-right" id="reset-password">Send Reset Request</button>

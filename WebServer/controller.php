@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'){
                     include('model_passreset.php');
                     $newpass = tempPassword($_POST['email']);
                     $passreset = passwordResetEmail($_POST['email'], $newpass);
-                    if $passreset {
+                    if ($passreset) {
                         echo blind_reset_password($_POST['email'], $newpass);
                     }
                     else {
