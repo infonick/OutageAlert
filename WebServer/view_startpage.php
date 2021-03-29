@@ -197,6 +197,37 @@
                     }
                 });
         }
+        function resetAccountPassword() {
+            var form = $('#forgotpassform');
+            var controller = "controller.php";
+            var text = document.getElementById("reset-email").value;
+            if (text == "") {
+                let field = form.find('[name="email"]');
+                field.addClass("is-invalid");
+                document.getElementById("forgotpw-email-error").innerText = "Please enter an email address.";
+                return false;
+            } else if (!text.includes("@") || !text.includes(".")) {
+                let field = form.find('[name="email"]');
+                field.addClass("is-invalid");
+                document.getElementById("forgotpw-email-error").innerText = "Please enter a valid email address.";
+                return false;
+            }
+
+            $.post(controller,
+                {
+                    page: "StartPage", command: "ForgotPassword", email: text
+                },
+                function (result) {
+                    let field = form.find('[name="email"]')
+                    if (result == true) {
+                        field.addClass("is-valid")
+                        document.getElementById("forgotpw-email-error").innerText = "Email sent - please check your inbox."
+                    } else {
+                        field.addClass("is-invalid")
+                        document.getElementById("forgotpw-email-error").innerText = "ERROR - please check your email or <a href='mailto:aoutage@gmail.com'>contact the administrators</a> for assistance."
+                    }
+                });
+        }
             // TODO: sign in server-side validation
     </script>
     <title>Outage Alert</title>
@@ -292,7 +323,7 @@
                 <div class="form-group">
                     <label for="email">Email Address:</label>
                     <input type="email" class="form-control" id="reset-email" name="email" placeholder="email" required>
-                    <div class="invalid-feedback"></div>
+                    <div class="invalid-feedback" id="forgotpw-email-error"></div>
                 </div>
                 <div class="form-group" style="padding-bottom: 50px">
                     <button type="button" class="btn btn-primary float-right" id="reset-password">Send Reset Request</button>

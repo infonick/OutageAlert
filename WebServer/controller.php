@@ -55,7 +55,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'){
                 include('view_mainpage.php');
                 exit();
             case 'ForgotPassword':
-                # TODO: set up some sort of email based reset password configuration
+                if(check_existence($_POST['email'])){
+                    include('model_passreset.php');
+                    $newpass = tempPassword($_POST['email']);
+                    $passreset = passwordResetEmail($_POST['email'], $newpass);
+                    if $passreset {
+                        echo blind_reset_password($_POST['email'], $newpass);
+                    }
+                    else {
+                        echo false;
+                    }
+                }
+                else {
+                    echo false;
+                }
                 exit();
         }
     }

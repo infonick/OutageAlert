@@ -294,7 +294,7 @@ function reset_password($email, $oldpassword, $newpassword) {
     $valid = check_validity($email, $oldpassword);
 
     if ($valid = true) {
-        $sql = "UPDATE Account SET Password = '$newpassword";
+        $sql = "UPDATE Account SET Account.Password = '$newpassword' WHERE Account.Email = '$email'";
         $result = mysqli_query($conn, $sql);
         error_log("Password updated");
         return $result;
@@ -304,6 +304,16 @@ function reset_password($email, $oldpassword, $newpassword) {
         return false;
     }
 
+
+}
+
+function blind_reset_password($email, $newpassword) {
+    global $conn;
+
+    $sql = "UPDATE Account SET Account.Password = '$newpassword' WHERE Account.Email = '$email'";
+    $result = mysqli_query($conn, $sql);
+    error_log("Password updated");
+    return $result;
 
 }
 
