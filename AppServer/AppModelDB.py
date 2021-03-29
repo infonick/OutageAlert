@@ -460,11 +460,14 @@ def GetOutageUsersByPhone():
     try:
         OpenDBConnection()
         
-        sql =  "SELECT `Property Outage`.OutageID, Property.PropertyID, Property.`Property Name`, Property.Address, Recipients.Name, Recipients.Phone, Recipients.CarrierEmail "
+        sql =  "SELECT `Property Outage`.OutageID, Property.PropertyID, Property.`Property Name`, Property.Address, Recipients.Name, Recipients.Phone, Recipients.Provider "
         sql += "FROM (((`Property Outage` INNER JOIN Property ON `Property Outage`.PropertyID = Property.PropertyID) "
         sql += "INNER JOIN `Recipient Properties` ON Property.PropertyID = `Recipient Properties`.PropertyID) "
         sql += "INNER JOIN Recipients ON Recipients.Name = `Recipient Properties`.Name AND Recipients.AccountID = `Recipient Properties`.AccountID) "
-        sql += "WHERE `Property Outage`.Active = True AND Recipients.Phone IS NOT NULL AND (`Recipient Properties`.Active = 1 OR `Recipient Properties`.Active = 3) "
+        sql += "WHERE `Property Outage`.Active = True "
+        sql +=      "AND Recipients.Phone IS NOT NULL "
+        sql +=      "AND Recipients.Provider IS NOT NULL "
+        sql +=      "AND (`Recipient Properties`.Active = 1 OR `Recipient Properties`.Active = 3) "
         sql += "ORDER BY Recipients.Phone ASC, Recipients.Name ASC;"
         
         # Execute the SQL command

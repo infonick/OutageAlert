@@ -81,7 +81,7 @@ def sendOutageEmailsToUsers(messages):
 def createEmailMessages(ListOfOutageMessages, OutageUsersByEmail):
     # Reference: ListOfOutageMessages[i](id#,[(),()]) = [ (OutageIDNumber, [ ('key', int_priority, "message"), ('key', int_priority, "message"), ... ]),  ... ]
     # Reference: OutageUsersByEmail[i][key]     where    key = 'OutageID' 'PropertyID', 'Property Name', 'Address', 'Name', 'Contact Email' 
-    
+                                
     messages = []
     i = 0
 
@@ -125,6 +125,24 @@ def createEmailSMSTextMessages(ListOfOutageMessages, OutageUsersByPhone):
     # Reference: OutageUsersByPhone[i][key]     where    key = 'OutageID' 'PropertyID', 'Property Name', 'Address', 'Name', 'Phone', 'CarrierEmail'
     # Creates one email-to-text message per property 
     
+    carrierEmailDomain = {  'N/A': '',
+
+                            'Telus': '@msg.telus.com',
+                            'Koodo': '@msg.telus.com',
+
+                            'Bell Mobility': '@txt.bell.ca',
+                            'PC Mobile': '@txt.bell.ca',
+                            'Solo Mobile': '@txt.bell.ca',
+
+                            'Rogers': '@pcs.rogers.com',
+                            'Chatr': '@pcs.rogers.com',
+
+                            'Freedom Mobile': '@txt.freedommobile.ca',    # "Must send SMS 4000 from phone to activate."??
+                            'Fido': '@fido.ca',
+                            'Microcell': '',
+                            'Virgin Mobile': '@vmobile.ca',
+                            'Sasktel': '@sms.sasktel.com'}
+
     messages = []
     i = 0
 
@@ -138,8 +156,9 @@ def createEmailSMSTextMessages(ListOfOutageMessages, OutageUsersByPhone):
         newMessage += f"A power outage has been detected for {OutageUsersByPhone[i]['Property Name']}: \r\n"
         newMessage += getMessagesFromList(ListOfOutageMessages, OutageUsersByPhone[i]['OutageID'])
 
+
         
-        messages.append(   {'recipientEmail': f"{OutageUsersByPhone[i]['Phone']}{OutageUsersByPhone[i]['CarrierEmail']}" , # 'Carrier'NOT IN THE DB YET!!!
+        messages.append(   {'recipientEmail': f"{OutageUsersByPhone[i]['Phone']}{carrierEmailDomain[ OutageUsersByPhone[i]['Provider'] ]}" ,
                             'emailMessage': newMessage
                             })
        
@@ -174,3 +193,18 @@ def checkUserHasNoOutageInList(ListOfOutageMessages, OutageID):
             return False
 
     return True    
+
+
+{'N/A': '',
+'Telus': ,
+'Bell Mobility': ,
+'Rogers': ,
+'Freedom Mobile': ,
+'Fido': ,
+'Microcell': ,
+'PC Mobile': ,
+'Solo Mobile': ,
+'Virgin Mobile': ,
+'Koodo': ,
+'Chatr': ,
+'Sasktel': }
