@@ -64,7 +64,8 @@
                 $('#forgotpassform').show();
             });
             $('#reset-password').click( function () {
-                $('#forgotpassform').submit();
+                resetAccountPassword();
+                //$('#forgotpassform').submit();
             });
             // close reset form, go to sign in form
             $('#reset_signin_btn').click(function () {
@@ -197,6 +198,43 @@
                     }
                 });
         }
+
+        // Function to reset account password from startpage.
+        function resetAccountPassword() {
+            var form = $('#forgotpassform');
+            var controller = "controller.php";
+            var text = document.getElementById("reset-email").value;
+            if (text == "") {
+                let field = form.find('[name="email"]');
+                field.addClass("is-invalid");
+                field.removeClass("is-valid");
+                document.getElementById("forgotpw-email-error").innerHTML = "Please enter an email address.";
+                return false;
+            } else if (!text.includes("@") || !text.includes(".")) {
+                let field = form.find('[name="email"]');
+                field.addClass("is-invalid");
+                field.removeClass("is-valid");
+                document.getElementById("forgotpw-email-error").innerHTML = "Please enter a valid email address.";
+                return false;
+            }
+
+            $.post(controller,
+                {
+                    page: "StartPage", command: "ForgotPassword", email: text
+                },
+                function (result) {
+                    let field = form.find('[name="email"]')
+                    if (result == true) {
+                        field.addClass("is-valid");
+                        field.removeClass("is-invalid");
+                        document.getElementById("forgotpw-email-ok").innerHTML = "Email sent - please check your inbox.";
+                    } else {
+                        field.addClass("is-invalid");
+                        field.removeClass("is-valid");
+                        document.getElementById("forgotpw-email-error").innerHTML = "ERROR - please check your email or <a href='mailto:aoutage@gmail.com'>contact the administrators</a> for assistance.";
+                    }
+                });
+        }
             // TODO: sign in server-side validation
     </script>
     <title>Outage Alert</title>
@@ -234,7 +272,6 @@
                     <input type="password" class="form-control" id="signin-password" name="password" placeholder="" required>
                     <div class="invalid-feedback" id="signin-password-error"></div>
 
-                    <!-- TODO: figure out how best to handle resetting a password. jquery, popup window, idk? -->
                     <a href="#" id="forgotpasslink">Forgot Your Password?</a>
                 </div>
                 <div class="form-check">
@@ -286,14 +323,14 @@
                     <button type="button" class="btn btn-primary" id="signin_btn">Sign In</button>
                 </div>
             </form>
-            <!--TODO - update with proper URL -->
             <form id="forgotpassform" action="https://ec2-35-183-181-30.ca-central-1.compute.amazonaws.com/controller.php" method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']);?>">
                 <input type="hidden" name="page" value="StartPage">
                 <h4>Reset Password</h4>
                 <div class="form-group">
                     <label for="email">Email Address:</label>
-                    <input type="email" class="form-control" id="reset-email" name="email" placeholder="" required>
-                    <div class="invalid-feedback"></div>
+                    <input type="email" class="form-control" id="reset-email" name="email" placeholder="email" required>
+                    <div class="invalid-feedback" id="forgotpw-email-error"></div>
+                    <div class="valid-feedback" id="forgotpw-email-ok"></div>
                 </div>
                 <div class="form-group" style="padding-bottom: 50px">
                     <button type="button" class="btn btn-primary float-right" id="reset-password">Send Reset Request</button>
