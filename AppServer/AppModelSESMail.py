@@ -195,16 +195,3 @@ def checkUserHasNoOutageInList(ListOfOutageMessages, OutageID):
     return True    
 
 
-{'N/A': '',
-'Telus': ,
-'Bell Mobility': ,
-'Rogers': ,
-'Freedom Mobile': ,
-'Fido': ,
-'Microcell': ,
-'PC Mobile': ,
-'Solo Mobile': ,
-'Virgin Mobile': ,
-'Koodo': ,
-'Chatr': ,
-'Sasktel': }
