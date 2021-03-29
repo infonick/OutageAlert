@@ -272,7 +272,6 @@
                     <input type="password" class="form-control" id="signin-password" name="password" placeholder="" required>
                     <div class="invalid-feedback" id="signin-password-error"></div>
 
-                    <!-- TODO: figure out how best to handle resetting a password. jquery, popup window, idk? -->
                     <a href="#" id="forgotpasslink">Forgot Your Password?</a>
                 </div>
                 <div class="form-check">

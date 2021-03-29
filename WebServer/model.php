@@ -314,7 +314,7 @@ function blind_reset_password($email, $newpassword) {
 
     $hashed_password = hash("SHA256", $newpassword);
 
-    $sql = "UPDATE Account SET Account.Password = '$hashed_password' WHERE Account.Email = '$email'";
+    $sql = "UPDATE Account SET Account.Password = '$hashed_password', Account.Locked = 0 WHERE Account.Email = '$email'";
     $result = mysqli_query($conn, $sql);
     error_log("Password updated");
     return $result;
