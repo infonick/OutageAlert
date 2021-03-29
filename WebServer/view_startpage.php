@@ -64,7 +64,8 @@
                 $('#forgotpassform').show();
             });
             $('#reset-password').click( function () {
-                $('#forgotpassform').submit();
+                resetAccountPassword();
+                //$('#forgotpassform').submit();
             });
             // close reset form, go to sign in form
             $('#reset_signin_btn').click(function () {
@@ -317,7 +318,6 @@
                     <button type="button" class="btn btn-primary" id="signin_btn">Sign In</button>
                 </div>
             </form>
-            <!--TODO - update with proper URL -->
             <form id="forgotpassform" action="https://ec2-35-183-181-30.ca-central-1.compute.amazonaws.com/controller.php" method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']);?>">
                 <input type="hidden" name="page" value="StartPage">
                 <h4>Reset Password</h4>
