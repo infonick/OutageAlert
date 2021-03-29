@@ -208,6 +208,7 @@
         <!-- TODO: add column sizes for small and large -->
         <div class="col-lg-6">
             <h2 style="padding: 25px">Outage Alert</h2>
+            <h5 style="padding: 0 25px 0 25px">Email and SMS Notification Service for Power Outages in British Columbia</h5>
             <div style="text-align: center; padding-top: 150px">
 
                 <!-- TODO: think up some better landing page text -->
@@ -225,13 +226,13 @@
                 <h4>Sign In</h4>
                 <div class="form-group">
                     <label for="email">Email Address:</label>
-                    <input type="email" class="form-control" id="signin-email" name="email" placeholder="email" required>
+                    <input type="email" class="form-control" id="signin-email" name="email" placeholder="" required>
                     <div class="invalid-feedback" id="signin-email-error"></div>
                 </div>
                 <div class="form-group">
                     <label for="loginpassword">Password:</label>
-                    <input type="password" class="form-control" id="signin-password" name="password" placeholder="password" required>
-                    <div class="invalid-feedback" id="signin-password-error">Please enter a valid password.</div>
+                    <input type="password" class="form-control" id="signin-password" name="password" placeholder="" required>
+                    <div class="invalid-feedback" id="signin-password-error"></div>
 
                     <!-- TODO: figure out how best to handle resetting a password. jquery, popup window, idk? -->
                     <a href="#" id="forgotpasslink">Forgot Your Password?</a>
@@ -261,13 +262,13 @@
                 <h4>Create Account</h4>
                 <div class="form-group">
                     <label for="email">Email Address:</label>
-                    <input type="email" class="form-control" name="email" placeholder="email" id="join-email" required>
-                    <div class="invalid-feedback" id="join-email-error">Please enter a valid email address.</div>
+                    <input type="email" class="form-control" name="email" placeholder="" id="join-email" required>
+                    <div class="invalid-feedback" id="join-email-error"></div>
                 </div>
                 <div class="form-group">
                     <label for="joinpassword">Password:</label>
-                    <input type="password" class="form-control" id="join-password" name="password" placeholder="password" required>
-                    <div class="invalid-feedback" id="join-password-error">Please enter a valid password.</div>
+                    <input type="password" class="form-control" id="join-password" name="password" placeholder="" required>
+                    <div class="invalid-feedback" id="join-password-error"></div>
                 </div>
                 <div class="form-check" style="padding-bottom: 25px">
                     <input type="checkbox" class="form-check-input" name="showpass" id="showpassjoin">
@@ -291,12 +292,12 @@
                 <h4>Reset Password</h4>
                 <div class="form-group">
                     <label for="email">Email Address:</label>
-                    <input type="email" class="form-control" id="reset-email" name="email" placeholder="email" required>
+                    <input type="email" class="form-control" id="reset-email" name="email" placeholder="" required>
                     <div class="invalid-feedback"></div>
                 </div>
                 <div class="form-group" style="padding-bottom: 50px">
                     <button type="button" class="btn btn-primary float-right" id="reset-password">Send Reset Request</button>
-                    <input type="hidden" name="command" value="placeholder">
+                    <input type="hidden" name="command" value="ResetPass">
                 </div>
                 <hr/>
                 <div class="form-group" style="text-align: center">
