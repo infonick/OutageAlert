@@ -138,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'){
                 exit();
             case 'ChangeUserPassword':
                 if (check_validity($_SESSION['email'], $_POST['oldpassword'])){
-                    reset_password($_SESSION['email'], $_POST['newpassword']);
+                    echo reset_password($_SESSION['email'], $_POST['newpassword']);
                 }
                 exit();
         }

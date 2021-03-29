@@ -162,6 +162,19 @@
                     field.removeClass("is-invalid");
                 }
             });
+            
+            // processes the 'change user password' form or clears the form when cancelled
+            $('#cnguserpass-button').click(function () {
+                changeUserPassword();
+            });
+            $('#cnguserpass-cancel').click(function () {
+                $('#changeUserPasswordModal').modal('hide');
+                document.getElementById("change-user-password-form").reset();
+                $('#cnguserpass-old').removeClass("is-invalid");
+                $('#cnguserpass-old').removeClass("is-valid");
+                $('#cnguserpass-new').removeClass("is-invalid");
+                $('#cnguserpass-new').removeClass("is-valid");
+            });
         });
 
         // TODO - Undefined error when adding a new property in recipient properties subtable
@@ -551,41 +564,101 @@
             });
         }
 
-        // function changeUserPassword() {
-        //     var controller = "controller.php";
-        //     var oldpass = "document.getElementById('reset-email').value"; //NEEDS UPDATING
-        //     var newpass = "document.getElementById('reset-email').value"; //NEEDS UPDATING
-        //     var form = $('#changeUserPasswordForm'); //NEEDS UPDATING
-        //     if (oldpass == "") {
-        //         let field = form.find('[name="email"]'); //NEEDS UPDATING
-        //         field.addClass("is-invalid");
-        //         field.removeClass("is-valid");
-        //         document.getElementById("forgotpw-email-error").innerHTML = "Please enter an email address."; //NEEDS UPDATING
-        //         return false;
-        //     }
-        //     else if (newpass == "") {
-        //         let field = form.find('[name="email"]'); //NEEDS UPDATING
-        //         field.addClass("is-invalid");
-        //         field.removeClass("is-valid");
-        //         document.getElementById("forgotpw-email-error").innerHTML = "Please enter an email address."; //NEEDS UPDATING
-        //         return false;
-        //     }
-        //     $.post(controller,
-        //         {page: "MainPage", command: "ChangeUserPassword", oldpassword: oldpass, newpassword: newpass},
-        //         function(result){
-        //             let field = form.find('[name="changePassword"]') //NEEDS UPDATING
-        //             if (result == true) {
-        //                 field.addClass("is-valid");
-        //                 field.removeClass("is-invalid");
-        //                 document.getElementById("forgotpw-email-ok").innerHTML = "Password successfully changed."; //NEEDS UPDATING
-        //             } else {
-        //                 field.addClass("is-invalid");
-        //                 field.removeClass("is-valid");
-        //                 document.getElementById("forgotpw-email-error").innerHTML = "ERROR - please try again."; //NEEDS UPDATING
-        //             }
-        //             }
-        //         });
-        // }
+
+        // CODE TO CHANGE A USER PASSWORD ----->
+        function changeUserPassword() {
+            var controller = "controller.php";
+            var oldpass = document.getElementById('cnguserpass-old').value;
+            var newpass = document.getElementById('cnguserpass-new').value;
+            var form = $('#change-user-password-form');
+            $('#cnguserpass-old').removeClass("is-invalid");
+            $('#cnguserpass-old').removeClass("is-valid");
+            $('#cnguserpass-new').removeClass("is-invalid");
+            $('#cnguserpass-new').removeClass("is-valid");
+            if (oldpass == "") {
+                let field = form.find('[name="cnguserpass-old"]');
+                field.addClass("is-invalid");
+                field.removeClass("is-valid");
+                document.getElementById("cnguserpass-old-error").innerHTML = "Please enter your current password.";
+                return false;
+            }
+            else{
+                let field = form.find('[name="cnguserpass-old"]');
+                field.removeClass("is-invalid");
+                field.removeClass("is-valid");
+            }
+            
+            if (newpass == "") {
+                let field = form.find('[name="cnguserpass-new"]'); 
+                field.addClass("is-invalid");
+                field.removeClass("is-valid");
+                document.getElementById("cnguserpass-new-error").innerHTML = "Please enter a new password";
+                return false;
+            }
+            else{
+                let field = form.find('[name="cnguserpass-new"]'); 
+                field.removeClass("is-invalid");
+                field.removeClass("is-valid");
+            }
+
+            $.post(controller,
+                {page: "MainPage", command: "ChangeUserPassword", oldpassword: oldpass, newpassword: newpass},
+                function(result){
+                    //let field = form.find('[name="changePassword"]') //NEEDS UPDATING
+                    console.log("RESULT: " + result)
+                    document.getElementById("cnguserpass-old-error").innerHTML = "";
+                    document.getElementById("cnguserpass-new-error").innerHTML = "";
+                    $('#cnguserpass-old').removeClass("is-invalid");
+                    $('#cnguserpass-old').removeClass("is-valid");
+                    $('#cnguserpass-new').removeClass("is-invalid");
+                    $('#cnguserpass-new').removeClass("is-valid");
+                    if (result == true) {
+                        $('#cnguserpass-old').addClass("is-valid");
+                        $('#cnguserpass-new').addClass("is-valid");
+                        //document.getElementById("cnguserpass-success-toast").innerHTML = "Password successfully changed.";
+                        $('#cnguserpass-success').toast({delay:1000});
+                        $('#cnguserpass-success').toast('show');
+                        setTimeout(function () {
+                            $('#changeUserPasswordModal').modal('hide');
+                            document.getElementById("change-user-password-form").reset();
+                            //document.getElementById("cnguserpass-success-toast").innerHTML = "";
+                        }, 1100);
+                    } else {
+                        $('#cnguserpass-new').add("is-invalid");
+                        $('#cnguserpass-old').addClass("is-invalid");
+                        //document.getElementById("cnguserpass-fail-toast").innerHTML = "Password successfully changed.";
+                        $('#cnguserpass-fail').toast({delay:3000});
+                        $('#cnguserpass-fail').toast('show');
+                        setTimeout(function () {
+                            //document.getElementById("cnguserpass-fail-toast").innerHTML = "";
+                        }, 1100);
+                    }
+            });
+        }
+        //clears errors from input when changing it
+        $('#cnguserpass-old').on('input', function () {
+            var form = $('#edit-notification-form');
+            let field = form.find('[name="cnguserpass-old"]')
+            if (field.hasClass("is-invalid")) {
+                field.removeClass("is-invalid");
+            }
+            if (field.hasClass("is-valid")) {
+                field.removeClass("is-valid");
+            }
+        });
+        $('#cnguserpass-new').on('input', function () {
+            var form = $('#edit-notification-form');
+            let field = form.find('[name="cnguserpass-new"]')
+            if (field.hasClass("is-invalid")) {
+                field.removeClass("is-invalid");
+            }
+            if (field.hasClass("is-valid")) {
+                field.removeClass("is-valid");
+            }
+        });
+
+        // END CODE TO CHANGE A USER PASSWORD -----^
+
     </script>
     <title>Outage Alert</title>
 </head>
@@ -593,12 +666,15 @@
     <div class="container-fluid">
         <nav class="navbar navbar-expand-sm bg-dark navbar-dark justify-content-between">
             <a class="navbar-brand">Outage Alert</a>
-            <form class="form-inline" action="https://ec2-35-183-181-30.ca-central-1.compute.amazonaws.com/controller.php" method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']);?>">
-                <span class="navbar-text"><?php echo $_SESSION['email']?></span>
-                <button class="btn btn-dark" type="submit">Sign Out</button>
-                <input type="hidden" name="page" value="MainPage">
-                <input type="hidden" name="command" value="SignOut">
-            </form>
+            <div>
+                <span class="navbar-text d-inline"><?php echo $_SESSION['email']?></span>
+                <button class="btn btn-dark d-inline" data-toggle="modal" data-target="#changeUserPasswordModal">Change Password</button>
+                <form class="form-inline d-inline" action="https://ec2-35-183-181-30.ca-central-1.compute.amazonaws.com/controller.php" method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']);?>">
+                    <button class="btn btn-dark" type="submit">Sign Out</button>
+                    <input type="hidden" name="page" value="MainPage">
+                    <input type="hidden" name="command" value="SignOut">
+                </form>
+            </div>
         </nav>
         <div class="row">
             <h4 style="padding-top: 100px; padding-left: 100px">Properties</h4>
@@ -782,6 +858,45 @@
                         <button type="button" class="btn btn-success" id="erecipient-button">Edit</button>
                         <div class="toast text-white bg-success float-right" id="erecipient-success">
                             <div class="toast-body">Recipient details updated.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal" id="changeUserPasswordModal">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Change Password</h4>
+                    </div>
+                    <div class="modal-body">
+                        <form id="change-user-password-form" action="https://ec2-35-183-181-30.ca-central-1.compute.amazonaws.com/controller.php" method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']);?>">
+                            <div class="form-group">
+                                <label for="cnguserpass-old">Current Password:</label>
+                                <input type="password" class="form-control" id="cnguserpass-old" name="cnguserpass-old" placeholder="">
+                                <div class="invalid-feedback" id="cnguserpass-old-error"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="cnguserpass-new">New Password:</label>
+                                <input type="password" class="form-control" id="cnguserpass-new" name="cnguserpass-new" placeholder="" required>
+                                <div class="invalid-feedback" id="cnguserpass-new-error"></div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger mr-auto" data-dismiss="modal" id="cnguserpass-cancel">Cancel</button>
+                        <button type="button" class="btn btn-success" id="cnguserpass-button">Submit</button>
+                        <div class="toast text-white bg-success float-right fade hide" id="cnguserpass-success">
+                            <div class="toast-body" id="cnguserpass-success-toast">
+                                <!--<div class="toast-header">Success</div>-->
+                                <div class="toast-body">Password successfully changed.</div>
+                            </div>
+                        </div>
+                        <div class="toast text-white bg-danger float-right fade hide" id="cnguserpass-fail">
+                            <div class="toast-body" id="cnguserpass-fail-toast">
+                                <div class="toast-header">An error occured</div>
+                                <div class="toast-body">Please try retyping your old password.</div>
+                            </div>
                         </div>
                     </div>
                 </div>
