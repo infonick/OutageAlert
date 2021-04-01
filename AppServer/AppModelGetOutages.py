@@ -147,9 +147,9 @@ def SortOutages(outages):
 # Deactivate PropertyOutage and Outage records in the DB where power has been restored to a property (use UpdatePropertyOutages in AppModelDB.py)
 def DeactivateOutages(existingOutages, cancelledOutageIDSet):
     outagesThatHaveEnded = []
-    currentTime = AppTimeLib.GetCurrentUTCTime()
 
     # Uncomment this seciton if you wish that outages are deactivated from the DB when their 'dateOn' time has passed. 
+    # currentTime = AppTimeLib.GetCurrentUTCTime()
     # for existingOutage in existingOutages:
     #     if existingOutage['dateOn'] != None:
     #         if AppTimeLib.DateTimeFromJSToPython(existingOutage['dateOn']) <= currentTime: # BCHydro can put a future date/time in the 'dateOn' attribute for an estimated time on. 

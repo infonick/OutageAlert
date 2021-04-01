@@ -198,6 +198,7 @@ if err != None:
 # TODO: Reactivate property-outages in the DB where power has been lost again (use UpdatePropertyOutages in AppModelDB.py) (LOW PRIORITY)
 # TODO: Search for properties that have been added since a power outage started and give them messages??? Has this been done?
 # TODO: Implement sending sms messages
+# TODO: Need to account for cases where the size and shape of the power outage polygon changes during an outage - it may suddenly include more homes.
 
 
 # OLD CODE ------------------------------------------------------------------------------

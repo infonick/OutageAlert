@@ -182,7 +182,9 @@ def GenerateNewOutageMessages(outages):
 
 
         for i in range(len(outages)):
-            newOutageAlerts.append((outages[i]['id'], GenerateOutageMessages(blankOutage, outages[i]))) # Create a tuple consisting of the outage ID number, and all the related update messages for that outage ID
+            msgs = GenerateOutageMessages(blankOutage, outages[i])
+            if len(msgs) > 0:
+                newOutageAlerts.append((outages[i]['id'], msgs)) # Create a tuple consisting of the outage ID number, and all the related update messages for that outage ID
 
     return newOutageAlerts
 
@@ -214,8 +216,9 @@ def GenerateOutageUpdateMessages(udOutages):
 
         for i in range(len(updatedOutages)):
             (outageID, oldOutageInfo, updatedOutageInfo) = updatedOutages[i]
-
-            updateAlerts.append((outageID, GenerateOutageMessages(oldOutageInfo, updatedOutageInfo))) # Create a tuple consisting of the outage ID number, and all the related update messages for that outage ID
+            msgs = GenerateOutageMessages(oldOutageInfo, updatedOutageInfo)
+            if len(msgs) > 0:
+                updateAlerts.append((outageID, msgs)) # Create a tuple consisting of the outage ID number, and all the related update messages for that outage ID
 
     return updateAlerts
 
