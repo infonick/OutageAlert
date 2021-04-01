@@ -44,10 +44,13 @@ def TestPointInPolygonFunction():
     lat = 49.031038
     lon = -122.377685
 
+
     # sPoint1 = Point(myPoint[0], myPoint[1])
     # sPoint2 = Point(tuple(myPoint))
 
     # print(sPoint1.x, sPoint1.y)
     # print(len(myPolygon))
-    myPoly = ShapelyPolygon(TESTPOLYGON)
+    myPoly = Polygon(TESTPOLYGON)
     print (f"Test passes: {PointInPolygon(lat, lon, myPoly)}")
+
+

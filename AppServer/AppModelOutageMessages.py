@@ -28,7 +28,21 @@ def GenerateOutageMessages(existingOutageInfo, updatedOutageInfo):
 
         # Generate generic power outage update messages for users
 
-        if key == 'dateOn':
+        if key == 'id':
+            priority = 0
+            if oldValue == None and newValue != None:
+                outageMessages.append((key, priority, f"Power outage ID: {newValue}"))
+            continue
+
+        elif key == 'numCustomersOut':
+            priority = 0
+            if oldValue == None and newValue != None:
+                outageMessages.append((key, priority, f"Number of homes affected: {newValue}"))
+            elif newValue != None:
+                outageMessages.append((key, priority, f"Number of homes affected updated to {newValue} from {oldValue}."))
+            continue
+
+        elif key == 'dateOn':
             priority = 1
 
             futureDateOn = False
@@ -110,10 +124,6 @@ def GenerateOutageMessages(existingOutageInfo, updatedOutageInfo):
         # elif key == 'lastUpdated':
         #     # What do we do with this part? anything?                                                                        <----
         #     continue
-        # elif key == 'numCustomersOut':
-        #     continue
-        # elif key == 'id':
-        #     continue
         # elif key == 'gisId':
         #     continue
         # elif key == 'regionId':
@@ -149,7 +159,7 @@ def GenerateCancelledOutageMessages(outageIDList):
 
     if len(outageIDList) > 0:
         for id in outageIDList:
-            newOutageAlerts.append(  (id, [('Cancellation', 0, "This power outage event has now been cancelled.")])  ) # Create a tuple consisting of the outage ID number, and all the related update messages for that outage ID
+            newOutageAlerts.append(  (id, [('Cancellation', 0, f"Power outage {id} has now been cancelled.")])  ) # Create a tuple consisting of the outage ID number, and all the related update messages for that outage ID
 
     return newOutageAlerts
 

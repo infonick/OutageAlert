@@ -71,7 +71,7 @@ for property in allProperties:
     for outage in newOutages:
         if AppModelPolygonPointFunctions.PointInPolygon(property['Latitude'], property['Longitude'], outage['polygon']):
             propOutageList.append({'outageID': outage['id'], 'propertyID': property['PropertyID']})
-            break
+            #break - if we break here, then a property covered by two outages wont be identified.
     # TODO: In the future, it may be a good idea to also check for properties that were added after an outage had started.
 
 err = AppModelDB.InsertPropertyOutages(propOutageList)
