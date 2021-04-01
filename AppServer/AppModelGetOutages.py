@@ -149,10 +149,11 @@ def DeactivateOutages(existingOutages, cancelledOutageIDSet):
     outagesThatHaveEnded = []
     currentTime = AppTimeLib.GetCurrentUTCTime()
 
-    for existingOutage in existingOutages:
-        if existingOutage['dateOn'] != None:
-            if AppTimeLib.DateTimeFromJSToPython(existingOutage['dateOn']) <= currentTime: # BCHydro can put a future date/time in the 'dateOn' attribute for an estimated time on. 
-                outagesThatHaveEnded.append(existingOutage.copy())
+    # Uncomment this seciton if you wish that outages are deactivated from the DB when their 'dateOn' time has passed. 
+    # for existingOutage in existingOutages:
+    #     if existingOutage['dateOn'] != None:
+    #         if AppTimeLib.DateTimeFromJSToPython(existingOutage['dateOn']) <= currentTime: # BCHydro can put a future date/time in the 'dateOn' attribute for an estimated time on. 
+    #             outagesThatHaveEnded.append(existingOutage.copy())
 
     for cancelledOutageID in cancelledOutageIDSet:
         outagesThatHaveEnded.append({'id':cancelledOutageID})
