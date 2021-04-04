@@ -55,20 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'){
                 include('view_mainpage.php');
                 exit();
             case 'ForgotPassword':
-                if(check_existence($_POST['email'])){
-                    include('model_passreset.php');
-                    $newpass = tempPassword($_POST['email']);
-                    $passreset = passwordResetEmail($_POST['email'], $newpass);
-                    if ($passreset) {
-                        echo reset_password($_POST['email'], $newpass);
-                    }
-                    else {
-                        echo false;
-                    }
-                }
-                else {
-                    echo false;
-                }
+                # TODO: set up some sort of email based reset password configuration
                 exit();
         }
     }
@@ -135,11 +122,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST'){
                 exit();
             case 'ChangeNotificationStatus':
                 set_notification_status($_POST['name'], $_POST['pid'], $_POST['status']);
-                exit();
-            case 'ChangeUserPassword':
-                if (check_validity($_SESSION['email'], $_POST['oldpassword'])){
-                    echo reset_password($_SESSION['email'], $_POST['newpassword']);
-                }
                 exit();
         }
     }

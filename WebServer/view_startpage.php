@@ -10,16 +10,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
     <!-- Bootstrap - Latest compiled JavaScript -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script>
-        // hide the create account form on initial load (done using regular javascript to prevent flickering)
-        // probably a better way to do this. still minor flickering. should look into that
-        window.addEventListener("load", function () {
+    <script async>
+        $(document).ready(function () {
             $('#signupform').hide();
             $('#forgotpassform').hide();
-        });
-    </script>
-    <script>
-        $(document).ready(function () {
             // show the create account form
             $('#create_account_btn').click(function () {
                $('#signinform').hide();
@@ -33,19 +27,19 @@
             // show or hide the password for the signin form
             $('#showpasslogin').click(function () {
                 if ($(this).is(':checked')){
-                    $('#loginpassword').attr('type', 'text');
+                    $('#signin-password').attr('type', 'text');
                 }
                 else{
-                    $('#loginpassword').attr('type', 'password');
+                    $('#signin-password').attr('type', 'password');
                 }
             });
             // show or hide the password for the join form
             $('#showpassjoin').click(function () {
                 if ($(this).is(':checked')){
-                    $('#joinpassword').attr('type', 'text');
+                    $('#join-password').attr('type', 'text');
                 }
                 else{
-                    $('#joinpassword').attr('type', 'password');
+                    $('#join-password').attr('type', 'password');
                 }
             });
             // submit given information for validation when clicking create account button
@@ -65,7 +59,6 @@
             });
             $('#reset-password').click( function () {
                 resetAccountPassword();
-                //$('#forgotpassform').submit();
             });
             // close reset form, go to sign in form
             $('#reset_signin_btn').click(function () {
@@ -272,6 +265,7 @@
                     <input type="password" class="form-control" id="signin-password" name="password" placeholder="" required>
                     <div class="invalid-feedback" id="signin-password-error"></div>
 
+                    <!-- TODO: figure out how best to handle resetting a password. jquery, popup window, idk? -->
                     <a href="#" id="forgotpasslink">Forgot Your Password?</a>
                 </div>
                 <div class="form-check">
@@ -323,12 +317,13 @@
                     <button type="button" class="btn btn-primary" id="signin_btn">Sign In</button>
                 </div>
             </form>
+            <!--TODO - update with proper URL -->
             <form id="forgotpassform" action="https://ec2-35-183-181-30.ca-central-1.compute.amazonaws.com/controller.php" method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']);?>">
                 <input type="hidden" name="page" value="StartPage">
                 <h4>Reset Password</h4>
                 <div class="form-group">
                     <label for="email">Email Address:</label>
-                    <input type="email" class="form-control" id="reset-email" name="email" placeholder="email" required>
+                    <input type="email" class="form-control" id="reset-email" name="email" placeholder="" required>
                     <div class="invalid-feedback" id="forgotpw-email-error"></div>
                     <div class="valid-feedback" id="forgotpw-email-ok"></div>
                 </div>

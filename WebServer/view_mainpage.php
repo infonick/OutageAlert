@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <!-- Bootstrap - Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <!-- jQuery library -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <!-- Popper JS - Required for Bootstrap 4 -->
@@ -26,27 +28,20 @@
             z-index: 10;
         }
     </style>
-    <script>
-        // hide the create account form on initial load (done using regular javascript to prevent flickering)
-        // probably a better way to do this. still minor flickering. should look into that
-        window.addEventListener("load", function () {
-            console.log("load");
-
-        });
-    </script>
     <script defer>
         $(document).ready(function () {
             recipientNames = [];
             tableNumber = 0;
             loadProperties();
             loadRecipients();
-            console.log("ready");
+            $('[data-toggle="tooltip"]').tooltip();
             // validates, submits, and resets the new property form
             $('#nproperty-button').click(function () {
-                checkNewProperty();
-                setTimeout(function () {
-                    document.getElementById("new-property-form").reset();
-                }, 1000);
+                if (checkNewProperty() != false) {
+                    setTimeout(function () {
+                        document.getElementById("new-property-form").reset();
+                    }, 1000);
+                }
             });
             // resets the new property form on clicking cancel
             $('#nproperty-cancel').click(function () {
@@ -68,11 +63,12 @@
                 }
             });
             $('#eproperty-button').click(function () {
-                checkEditProperty();
-                setTimeout(function () {
-                    $('#edit-property').hide();
-                    document.getElementById("edit-property-form").reset();
-                }, 1000);
+                if (checkEditProperty() != false) {
+                    setTimeout(function () {
+                        $('#edit-property').hide();
+                        document.getElementById("edit-property-form").reset();
+                    }, 1000);
+                }
             });
             // resets the new property form on clicking cancel
             $('#eproperty-cancel').click(function () {
@@ -96,10 +92,11 @@
             });
             // validates, submits, and resets the new notification form
             $('#nrecipient-button').click(function () {
-               checkNewRecipient();
-                setTimeout(function () {
-                    document.getElementById("new-notification-form").reset();
-                }, 1000);
+                if (checkNewRecipient() != false) {
+                    setTimeout(function () {
+                        document.getElementById("new-notification-form").reset();
+                    }, 1000);
+                }
             });
             // resets the new notification form on clicking cancel
             $('#nrecipient-cancel').click(function () {
@@ -129,11 +126,12 @@
             });
             // validates, submits, and resets the edit notification form
             $('#erecipient-button').click(function () {
-                checkEditRecipient();
-                setTimeout(function () {
-                    $('#edit-notification').hide();
-                    document.getElementById("edit-notification-form").reset();
-                }, 1100);
+                if (checkEditRecipient() != false) {
+                    setTimeout(function () {
+                        $('#edit-notification').hide();
+                        document.getElementById("edit-notification-form").reset();
+                    }, 1100);
+                }
             });
             // resets the edit notification form on clicking cancel
             $('#erecipient-cancel').click(function () {
@@ -162,7 +160,6 @@
                     field.removeClass("is-invalid");
                 }
             });
-            
             // processes the 'change user password' form or clears the form when cancelled
             $('#cnguserpass-button').click(function () {
                 changeUserPassword();
@@ -218,14 +215,12 @@
             var name = document.getElementById("eproperty-name").value;
             var address = document.getElementById("eaddress").value;
             if (name == "") {
-                let field = form.find('[name="property-name"]');
-                field.addClass("is-invalid");
+                $('#eproperty-name').addClass("is-invalid");
                 document.getElementById("epname-error").innerText = "Please enter a name.";
                 return false;
             }
             if (address == "") {
-                let field = form.find('[name="address"]');
-                field.addClass("is-invalid");
+                $('#eaddress').addClass("is-invalid");
                 document.getElementById("eaddress-error").innerText = "Please enter an address.";
                 return false;
             }
@@ -306,29 +301,24 @@
             var pnumber = document.getElementById("ephone-number").value;
             var provider = document.getElementById("ecarrier").value;
             if (name == "") {
-                let field = form.find('[name="erecipient-name"]');
-                field.addClass("is-invalid");
+                $('#erecipient-name').addClass("is-invalid");
                 document.getElementById("ername-error").innerText = "Please enter a name.";
                 return false;
             }
             if (email == "" && pnumber == "") {
-                let field = form.find('[name="eemail"]');
-                let field2 = form.find('[name="ephone-number"]');
-                field.addClass("is-invalid");
-                field2.addClass("is-invalid");
+                $('#eemail').addClass("is-invalid");
+                $('#ephone-number').addClass("is-invalid");
                 document.getElementById("eemail-error").innerText = "Please enter an email or phone number.";
                 return false;
             }
             // only need an email or a phone number, so we check if they are not empty before validating
             if (email != "" && (!email.includes("@") || !email.includes("."))) {
-                let field = form.find('[name="eemail"]');
-                field.addClass("is-invalid");
+                $('#eemail').addClass("is-invalid");
                 document.getElementById("eemail-error").innerText = "Please enter a valid email address.";
                 return false;
             }
             if (pnumber != "" && pnumber.length != 10) {
-                let field = form.find('[name="ephone-number"]');
-                field.addClass("is-invalid");
+                $('#ephone-number').addClass("is-invalid");
                 document.getElementById("epnumber-error").innerText = "Please enter a 10-digit phone number.";
                 return false;
             }
@@ -397,7 +387,7 @@
             var obj = JSON.parse(jsonArray);
             var table = "<table class='table table-striped'><thead class='thead-dark'><tr><th>Recipient Name</th><th>Phone Number</th><th>Provider</th><th>Email Address</th><th></th></tr></thead><tbody>";
             for (var i = 0; i < obj.length; i++) {
-                table += `<tr onclick="getElementById('entry${i}').click()" style="cursor: pointer">`;
+                    table += `<tr id="row${i}">`;
                 var col = 0
                 for (var j in obj[i]) {
                     if (col == 0) {
@@ -417,22 +407,28 @@
                     else if (col == 3) {
                         item4 = (obj[i])[j];
                     }
-                    table += "<td>" + (obj[i])[j] + "</td>";
+                    table += `<td onclick="getElementById('entry${i}').click(); setActive(${i})" style="cursor: pointer">` + (obj[i])[j] + `</td>`;
                 }
                 col = 0;
-                table += `<td><button type='button' class='btn btn-secondary' onclick="editRecipient(\'${item}\', ${item2}, \`${item3}\`, \'${item4}\')">Edit</button><button type='button' data-toggle='collapse' id='entry${i}' style='visibility:hidden' data-target='#row${i}'></button></td></tr><tr id='row${i}' class='collapse'><td colspan='4'><div id='props${i}'></div></td></tr>`;
+                table += `<td><button type='button' class='btn btn-secondary' onclick="editRecipient(\'${item}\', ${item2}, \`${item3}\`, \'${item4}\')">Edit</button><button type='button' class='rbtn' data-toggle='collapse' id='entry${i}' style='visibility:hidden' data-target='#props${i}'></button></td></tr><tr id='col${i}' style='margin: auto'><td colspan='3' style='padding: 0 0 0 50px'><div id='props${i}' class='collapse'></div></td></tr>`;
             }
             table += "</tbody></table>";
             return table;
         }
 
+        function setActive(row) {
+            if ($("#row" + row).hasClass("table-info")) {
+                $("#row" + row).removeClass("table-info");
+            }
+            else {
+                $("#row" + row).addClass("table-info");
+            }
+        }
 
         function createPropertiesSubtable(jsonArray, uname) {
             var obj = JSON.parse(jsonArray);
             var table = "<table class='table table-borderless'><thead class='thead-dark'><tr><th>Property Name</th><th>Send SMS</th><th>Send Email</th></tr></thead><tbody>";
             for (var i = 0; i < obj.length; i++) {
-                console.log(obj[i].Name);
-                console.log(uname);
                 if (obj[i].Name == uname) {
                     table += "<tr id='checkboxrow${i}'>";
                     var col = 0;
@@ -564,7 +560,6 @@
             });
         }
 
-
         // CODE TO CHANGE A USER PASSWORD ----->
         function changeUserPassword() {
             var controller = "controller.php";
@@ -587,16 +582,16 @@
                 field.removeClass("is-invalid");
                 field.removeClass("is-valid");
             }
-            
+
             if (newpass == "") {
-                let field = form.find('[name="cnguserpass-new"]'); 
+                let field = form.find('[name="cnguserpass-new"]');
                 field.addClass("is-invalid");
                 field.removeClass("is-valid");
                 document.getElementById("cnguserpass-new-error").innerHTML = "Please enter a new password";
                 return false;
             }
             else{
-                let field = form.find('[name="cnguserpass-new"]'); 
+                let field = form.find('[name="cnguserpass-new"]');
                 field.removeClass("is-invalid");
                 field.removeClass("is-valid");
             }
@@ -633,7 +628,7 @@
                             //document.getElementById("cnguserpass-fail-toast").innerHTML = "";
                         }, 1100);
                     }
-            });
+                });
         }
         //clears errors from input when changing it
         $('#cnguserpass-old').on('input', function () {
@@ -656,9 +651,6 @@
                 field.removeClass("is-valid");
             }
         });
-
-        // END CODE TO CHANGE A USER PASSWORD -----^
-
     </script>
     <title>Outage Alert</title>
 </head>
@@ -667,7 +659,7 @@
         <nav class="navbar navbar-expand-sm bg-dark navbar-dark justify-content-between">
             <a class="navbar-brand">Outage Alert</a>
             <div>
-                <span class="navbar-text d-inline"><?php echo $_SESSION['email']?></span>
+                <span class="navbar-text d-inline" style="vertical-align: middle"><?php echo $_SESSION['email']?></span>
                 <button class="btn btn-dark d-inline" data-toggle="modal" data-target="#changeUserPasswordModal">Change Password</button>
                 <form class="form-inline d-inline" action="https://ec2-35-183-181-30.ca-central-1.compute.amazonaws.com/controller.php" method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']);?>">
                     <button class="btn btn-dark" type="submit">Sign Out</button>
@@ -696,12 +688,12 @@
                         <form id="new-property-form" action="https://ec2-35-183-181-30.ca-central-1.compute.amazonaws.com/controller.php" method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']);?>">
                             <div class="form-group">
                                 <label for="property-name">Property Name:</label>
-                                <input type="text" class="form-control" id="property-name" name="property-name" placeholder="property-name" required>
+                                <input type="text" class="form-control" id="property-name" name="property-name" placeholder="" required>
                                 <div class="invalid-feedback" id="pname-error"></div>
                             </div>
                             <div class="form-group">
                                 <label for="address">Address:</label>
-                                <input type="text" class="form-control" id="address" name="address" placeholder="address" required>
+                                <input type="text" class="form-control" id="address" name="address" placeholder="" required>
                                 <div class="invalid-feedback" id="address-error"></div>
                             </div>
                         </form>
@@ -726,12 +718,12 @@
                         <form id="edit-property-form" action="https://ec2-35-183-181-30.ca-central-1.compute.amazonaws.com/controller.php" method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']);?>">
                             <div class="form-group">
                                 <label for="eproperty-name">Property Name:</label>
-                                <input type="text" class="form-control" id="eproperty-name" name="property-name" placeholder="property-name" required>
+                                <input type="text" class="form-control" id="eproperty-name" name="property-name" placeholder="" required>
                                 <div class="invalid-feedback" id="epname-error"></div>
                             </div>
                             <div class="form-group">
                                 <label for="eaddress">Address:</label>
-                                <input type="text" class="form-control" id="eaddress" name="address" placeholder="address" required>
+                                <input type="text" class="form-control" id="eaddress" name="address" placeholder="" required>
                                 <div class="invalid-feedback" id="eaddress-error"></div>
                             </div>
                         </form>
@@ -747,7 +739,10 @@
             </div>
         </div>
         <div class="row">
-            <h4 style="padding-top: 100px; padding-left: 100px">Notifications (Click Recipient to Expand Settings)</h4>
+            <h4 style="padding-top: 100px; padding-left: 100px">Recipients</h4>
+        </div>
+        <div class="row">
+            <h6 style="padding-left: 100px">(Click Rows to Expand Notification Settings)</h6>
         </div>
         <div class="row" id="recipients-pane">
 
@@ -759,39 +754,37 @@
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title">New Notification</h4>
+                        <h4 class="modal-title">New Recipient</h4>
                     </div>
                     <div class="modal-body">
                         <form id="new-notification-form" action="https://ec2-35-183-181-30.ca-central-1.compute.amazonaws.com/controller.php" method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']);?>">
                             <div class="form-group">
                                 <label for="recipient-name">Recipient Name:</label>
-                                <input type="text" class="form-control" id="recipient-name" name="recipient-name" placeholder="recipient-name">
+                                <input type="text" class="form-control" id="recipient-name" name="recipient-name" placeholder="">
                                 <div class="invalid-feedback" id="rname-error"></div>
                             </div>
                             <div class="form-group">
-                                <label for="email">Email Address:</label>
-                                <input type="email" class="form-control" id="email" name="email" placeholder="email" required>
+                                <label for="email">Email Address (optional):</label>
+                                <input type="email" class="form-control" id="email" name="email" placeholder="" required>
                                 <div class="invalid-feedback" id="email-error"></div>
                             </div>
                             <div class="form-group">
-                                <label for="phone-number">Phone Number:</label>
-                                <input type="tel" class="form-control" id="phone-number" name="phone-number" placeholder="123-456-7890" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}">
+                                <label for="phone-number">Phone Number (optional):</label>
+                                <input type="tel" class="form-control" id="phone-number" name="phone-number" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" data-toggle="tooltip" data-placement="top" title="Enter a 10 digit number with no special characters (e.g. 1234567890)">
                                 <div class="invalid-feedback" id="pnumber-error"></div>
                             </div>
                             <div class="form-group">
-                                <label for="carrier">Phone Service Provider:</label>
+                                <label for="carrier">Phone Service Provider: <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="right" title="Why do we ask for this? We use Email to SMS offered by service providers to reduce our costs. As such, we need your provider's name to ensure the messages get to the right place."></i></label>
                                 <select class="form-control" id="carrier">
                                     <option>N/A</option>
-                                    <option>Bell Canada</option>
-                                    <option>Bell Mobility (Canada)</option>
-                                    <option>Bell Mobility</option>
-                                    <option>Fido</option>
-                                    <option>Freedom Mobile</option>
-                                    <option>Microcell</option>
-                                    <option>President's Choice</option>
-                                    <option>Roger's Canada</option>
-                                    <option>Solo Mobile</option>
                                     <option>Telus</option>
+                                    <option>Bell Mobility</option>
+                                    <option>Rogers</option>
+                                    <option>Freedom Mobile</option>
+                                    <option>Fido</option>
+                                    <option>Microcell</option>
+                                    <option>PC Mobile</option>
+                                    <option>Solo Mobile</option>
                                     <option>Virgin Mobile</option>
                                     <option>Koodo</option>
                                     <option>Chatr</option>
@@ -801,6 +794,7 @@
                         </form>
                     </div>
                     <div class="modal-footer">
+                        <p><small>All notifications (Email and SMS) are off by default. Notifications can be turned on and off in the user's notification settings.</small></p>
                         <button type="button" class="btn btn-danger mr-auto" data-dismiss="modal" id="nrecipient-cancel">Cancel</button>
                         <button type="button" class="btn btn-success" id="nrecipient-button">Add</button>
                         <div class="toast text-white bg-success float-right" id="nrecipient-success">
@@ -814,7 +808,7 @@
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title">Edit Notification</h4>
+                        <h4 class="modal-title">Edit Recipient</h4>
                     </div>
                     <div class="modal-body">
                         <form id="edit-notification-form" action="https://ec2-35-183-181-30.ca-central-1.compute.amazonaws.com/controller.php" method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']);?>">
@@ -824,27 +818,27 @@
                                 <div class="invalid-feedback" id="ername-error"></div>
                             </div>
                             <div class="form-group">
-                                <label for="eemail">Email Address:</label>
-                                <input type="email" class="form-control" id="eemail" name="email" placeholder="email" required>
+                                <label for="eemail">Email Address (optional):</label>
+                                <input type="email" class="form-control" id="eemail" name="email" placeholder="" required>
                                 <div class="invalid-feedback" id="eemail-error"></div>
                             </div>
                             <div class="form-group">
-                                <label for="ephone-number">Phone Number:</label>
-                                <input type="tel" class="form-control" id="ephone-number" name="phone-number" placeholder="123-456-7890" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}">
+                                <label for="ephone-number">Phone Number (optional):</label>
+                                <input type="tel" class="form-control" id="ephone-number" name="phone-number" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" data-toggle="tooltip" data-placement="top" title="Enter a 10 digit number with no special characters (e.g. 1234567890)">
                                 <div class="invalid-feedback" id="epnumber-error"></div>
                             </div>
                             <div class="form-group">
-                                <label for="ecarrier">Phone Service Provider:</label>
+                                <label for="ecarrier">Phone Service Provider: <i class="fa fa-info-circle" data-toggle="tooltip" data-placement="right" title="Why do we ask for this? We use Email to SMS offered by service providers to reduce our costs. As such, we need your provider's name to ensure the messages get to the right place."></i></label>
                                 <select class="form-control" id="ecarrier">
                                     <option>N/A</option>
-                                    <option>Bell Mobility</option>
-                                    <option>Fido</option>
-                                    <option>Freedom Mobile</option>
-                                    <option>Microcell</option>
-                                    <option>President's Choice</option>
-                                    <option>Roger's Canada</option>
-                                    <option>Solo Mobile</option>
                                     <option>Telus</option>
+                                    <option>Bell Mobility</option>
+                                    <option>Rogers</option>
+                                    <option>Freedom Mobile</option>
+                                    <option>Fido</option>
+                                    <option>Microcell</option>
+                                    <option>PC Mobile</option>
+                                    <option>Solo Mobile</option>
                                     <option>Virgin Mobile</option>
                                     <option>Koodo</option>
                                     <option>Chatr</option>

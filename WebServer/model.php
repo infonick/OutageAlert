@@ -288,37 +288,22 @@ function check_account_status($email) {
 }
 
 # TODO - test if this funtions properly
-// function reset_password($email, $oldpassword, $newpassword) {
-//     global $conn;
-
-//     $valid = check_validity($email, $oldpassword);
-
-//     $hashed_password = hash("SHA256", $newpassword);
-
-//     if ($valid = true) {
-//         $sql = "UPDATE Account SET Account.Password = '$hashed_password' WHERE Account.Email = '$email'";
-//         $result = mysqli_query($conn, $sql);
-//         error_log("Password updated");
-//         return $result;
-//     }
-//     else {
-//         error_log("Could not update password");
-//         return false;
-//     }
-
-
-// }
-
-// Function for resetting passwords
-function reset_password($email, $newpassword) {
+function reset_password($email, $oldpassword, $newpassword) {
     global $conn;
 
-    $hashed_password = hash("SHA256", $newpassword);
+    $valid = check_validity($email, $oldpassword);
 
-    $sql = "UPDATE Account SET Account.Password = '$hashed_password', Account.Locked = 0 WHERE Account.Email = '$email'";
-    $result = mysqli_query($conn, $sql);
-    error_log("Password updated");
-    return $result;
+    if ($valid = true) {
+        $sql = "UPDATE Account SET Password = '$newpassword";
+        $result = mysqli_query($conn, $sql);
+        error_log("Password updated");
+        return $result;
+    }
+    else {
+        error_log("Could not update password");
+        return false;
+    }
+
 
 }
 
